@@ -1,7 +1,6 @@
 package accounts
 
 import (
-	"fmt"
 	"os"
 	"time"
 
@@ -11,6 +10,7 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	gt "github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
 	"github.com/volodymyrzuyev/goCsInspect/cmd/logger"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/requests"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -27,9 +27,9 @@ type account struct {
 }
 
 type accounts struct {
-	clients   []*account
-	handler   steam.GCPacketHandler
-	responses chan bool
+	clients    []*account
+	handler    steam.GCPacketHandler
+	reqHandler requests.RequestHandler
 }
 
 func (a *accounts) AddAccount(creds Credentials) error {
@@ -81,17 +81,12 @@ func (a *accounts) InspectWeapon(params gt.InspectParams) (gt.Skin, error) {
 
 	// crafting the message
 	msg := gamecoordinator.NewGCMsgProtobuf(730, 9156, pip)
+	wg := a.reqHandler.AddRequest(int(params.ParamA))
 
 	curClient.client.GC.Write(msg)
 	logger.DEBUG.Printf("%v is requesting skin, itemID: %v", curClient.username, params.ParamA)
-	for i := 0; i < 1; i++ {
-		select {
-		case kik := <-a.responses:
-			if kik {
-				fmt.Println("Got response")
-			}
-		}
-	}
+
+	wg.Wait()
 
 	return gt.Skin{}, nil
 }
@@ -147,9 +142,9 @@ func (a *accounts) handleEvents(loginComplete chan bool, client *steam.Client, l
 	}
 }
 
-func NewAccountsList(handler steam.GCPacketHandler, responses chan bool) Accounts {
+func NewAccountsList(handler steam.GCPacketHandler, reqHandler requests.RequestHandler) Accounts {
 	if handler == nil {
 		panic("No handler func for account")
 	}
-	return &accounts{handler: handler, responses: responses}
+	return &accounts{handler: handler, reqHandler: reqHandler}
 }

@@ -23,6 +23,7 @@
 2. Log into account:
     * Description:
         Log into steam client with username + password + (2FA code || secret hash)
+        and get them ready for request
     * Preconditions:
         1. Internet connection must exist
         2. DB must be up
@@ -38,7 +39,24 @@
     * Status:
         WIP
 
-3. Decode "M" "A" "D" "S" params from inspect link:
+3. Get account ready for inspecting:
+    * Description:
+        Sets up the account to be ready for processing requests
+    * Preconditions:
+        1. Internet connection must exist
+        2. DB must be up
+        3. Account must be logged in
+    * Postconditions:
+        1. Account added to account list
+    * Success Scenario:
+        Successful connection to GC
+    * Failure scenario:
+        1. Account can't connect to steam:
+            Return an error
+    * Status:
+        WIP
+
+4. Decode "M" "A" "D" "S" params from inspect link:
     * Description:
         Decode params needed for fetching of the skin info
     * Preconditions:
@@ -53,7 +71,7 @@
     * Status:
         WIP
 
-4. Add item to DB:
+5. Add item to DB:
     * Description:
         Adds inspected item to database
     * Preconditions:
