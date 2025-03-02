@@ -16,6 +16,33 @@ type db struct {
 	d *sql.DB
 }
 
+func (d db) DeleteItem(itemId int64) error {
+	tx, err := d.d.Begin()
+	if err != nil {
+		logger.ERROR.Printf("Error starting a tx. Err: %v", err)
+		return DbError
+	}
+	defer tx.Rollback()
+
+	qtx := d.q.WithTx(tx)
+
+	err = qtx.DeleteItem(context.Background(), itemId)
+	if err != nil {
+		logger.ERROR.Printf("Error deleting %v from DB. Err: %v", itemId, err)
+		return DbError
+	}
+
+	err = qtx.DeleteModifiers(context.Background(), itemId)
+	if err != nil {
+		logger.ERROR.Printf("Error deleting %v modifications from DB. Err: %v", itemId, err)
+		return DbError
+	}
+
+	logger.DEBUG.Printf("Deleted %v from DB", itemId)
+
+	return tx.Commit()
+}
+
 func (d db) GetItem(itemId int64) (gt.Item, error) {
 	item, err := d.q.GetItem(context.Background(), itemId)
 	if err != nil {

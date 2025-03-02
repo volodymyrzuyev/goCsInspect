@@ -10,6 +10,26 @@ import (
 	"database/sql"
 )
 
+const deleteItem = `-- name: DeleteItem :exec
+DELETE FROM items
+WHERE ItemID = ?
+`
+
+func (q *Queries) DeleteItem(ctx context.Context, itemid int64) error {
+	_, err := q.db.ExecContext(ctx, deleteItem, itemid)
+	return err
+}
+
+const deleteModifiers = `-- name: DeleteModifiers :exec
+DELETE FROM Modifiers
+WHERE ItemID = ?
+`
+
+func (q *Queries) DeleteModifiers(ctx context.Context, itemid int64) error {
+	_, err := q.db.ExecContext(ctx, deleteModifiers, itemid)
+	return err
+}
+
 const getItem = `-- name: GetItem :one
 SELECT
 accountid, itemid, defindex, paintindex, rarity, quality, paintwear, paintseed, killeaterscoretype, killeatervalue, customname, inventory, origin, questid, dropreason, musicindex, entindex, petindex, paramd, paramm, params, floatvalue, maxfloat, minfloat, weapontype, itemname, rarityname, qualityname, originname, wearname, markethashname, lastupdated
