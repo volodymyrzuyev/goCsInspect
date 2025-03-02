@@ -10,13 +10,14 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	gt "github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
 	"github.com/volodymyrzuyev/goCsInspect/cmd/logger"
-	"github.com/volodymyrzuyev/goCsInspect/cmd/requests"
+	req "github.com/volodymyrzuyev/goCsInspect/cmd/requests"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/storage"
 	"google.golang.org/protobuf/proto"
 )
 
 type Accounts interface {
 	AddAccount(Credentials) error
-	InspectWeapon(params gt.InspectParams) (gt.Skin, error)
+	InspectWeapon(params gt.InspectParams) (gt.Item, error)
 }
 
 type account struct {
@@ -29,7 +30,8 @@ type account struct {
 type accounts struct {
 	clients    []*account
 	handler    steam.GCPacketHandler
-	reqHandler requests.RequestHandler
+	reqHandler req.RequestHandler
+	db         storage.Storage
 }
 
 func (a *accounts) AddAccount(creds Credentials) error {
@@ -64,10 +66,10 @@ func (a *accounts) AddAccount(creds Credentials) error {
 	}
 }
 
-func (a *accounts) InspectWeapon(params gt.InspectParams) (gt.Skin, error) {
+func (a *accounts) InspectWeapon(params gt.InspectParams) (gt.Item, error) {
 	clientIdx := a.getNextFreeAccount()
 	if clientIdx < 0 {
-		return gt.Skin{}, NoAvaliableAccounts
+		return gt.Item{}, NoAvaliableAccounts
 	}
 
 	curClient := a.clients[clientIdx]
@@ -88,7 +90,7 @@ func (a *accounts) InspectWeapon(params gt.InspectParams) (gt.Skin, error) {
 
 	wg.Wait()
 
-	return gt.Skin{}, nil
+	return a.db.GetItem(params.ParamA)
 }
 
 func (a *accounts) getNextFreeAccount() int {
@@ -142,9 +144,9 @@ func (a *accounts) handleEvents(loginComplete chan bool, client *steam.Client, l
 	}
 }
 
-func NewAccountsList(handler steam.GCPacketHandler, reqHandler requests.RequestHandler) Accounts {
+func NewAccountsList(handler steam.GCPacketHandler, reqHandler req.RequestHandler, store storage.Storage) Accounts {
 	if handler == nil {
 		panic("No handler func for account")
 	}
-	return &accounts{handler: handler, reqHandler: reqHandler}
+	return &accounts{handler: handler, reqHandler: reqHandler, db: store}
 }

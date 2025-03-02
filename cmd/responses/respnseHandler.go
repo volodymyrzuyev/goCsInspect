@@ -1,10 +1,14 @@
 package responses
 
 import (
+	"fmt"
+
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
 	"github.com/volodymyrzuyev/goCsInspect/cmd/logger"
-	"github.com/volodymyrzuyev/goCsInspect/cmd/requests"
+	req "github.com/volodymyrzuyev/goCsInspect/cmd/requests"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/storage"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -13,7 +17,8 @@ type ResponseHandler interface {
 }
 
 type responseHandler struct {
-	reqHandler requests.RequestHandler
+	reqHandler req.RequestHandler
+	db         storage.Storage
 }
 
 func (r responseHandler) HandleGCPacket(pack *gamecoordinator.GCPacket) {
@@ -34,10 +39,19 @@ func (r responseHandler) csResponse(pack *gamecoordinator.GCPacket) {
 		}
 
 		logger.INFO.Printf("Got resp for %v", int(*msg.GetIteminfo().Itemid))
+
+		err = r.db.InsertItem(globalTypes.Item{ItemID: int(*msg.GetIteminfo().Itemid)})
+		if err != nil {
+			fmt.Println(err)
+			panic("DB error")
+		} else {
+			fmt.Println("NO err")
+		}
+
 		r.reqHandler.FinishRequest(int(*msg.GetIteminfo().Itemid))
 	}
 }
 
-func NewReponseHandler(reqHandler requests.RequestHandler) ResponseHandler {
-	return responseHandler{reqHandler}
+func NewReponseHandler(reqHandler req.RequestHandler, store storage.Storage) ResponseHandler {
+	return responseHandler{reqHandler, store}
 }
