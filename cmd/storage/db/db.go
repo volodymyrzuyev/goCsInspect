@@ -3,16 +3,11 @@ package db
 import (
 	"context"
 	"database/sql"
-	"fmt"
-	"os"
-	"path/filepath"
 	"time"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/sqlite"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/mattn/go-sqlite3"
 	gt "github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/logger"
 	custSql "github.com/volodymyrzuyev/goCsInspect/cmd/storage/db/sqlc"
 )
 
@@ -24,14 +19,14 @@ type db struct {
 func (d db) GetItem(itemId int64) (gt.Item, error) {
 	item, err := d.q.GetItem(context.Background(), itemId)
 	if err != nil {
-		fmt.Println("err here")
-		return gt.Item{}, fmt.Errorf("De?")
+		logger.ERROR.Printf("Error getting %v from DB. Err: %v", itemId, err)
+		return gt.Item{}, DbError
 	}
 
 	mods, err := d.q.GetModifiers(context.Background(), itemId)
 	if err != nil {
-		fmt.Println("err there")
-		return gt.Item{}, fmt.Errorf("SHo?")
+		logger.ERROR.Printf("Error getting %v modifications from DB. Err: %v", itemId, err)
+		return gt.Item{}, DbError
 	}
 
 	stickers, chains := getStickersAndChains(mods)
@@ -73,6 +68,7 @@ func (d db) GetItem(itemId int64) (gt.Item, error) {
 		LastModified:       time.Unix(item.Lastupdated.Int64, 0),
 	}
 
+	logger.DEBUG.Printf("Successfully go %v from DB", itemId)
 	return itemStruct, nil
 }
 
@@ -114,6 +110,7 @@ func (d db) InsertItem(item gt.Item) error {
 
 	tx, err := d.d.Begin()
 	if err != nil {
+		logger.ERROR.Printf("Error starting a tx. Err: %v", err)
 		return DbError
 	}
 	defer tx.Rollback()
@@ -122,14 +119,14 @@ func (d db) InsertItem(item gt.Item) error {
 
 	err = qtx.InsertItem(context.Background(), itemArgs)
 	if err != nil {
-		fmt.Println(err)
+		logger.ERROR.Printf("Error insering item %v. Error: %v", item.ItemID, err)
 		return DbError
 	}
 
 	for _, m := range item.Stickers {
 		err = qtx.InsertModifier(context.Background(), modToInsertModArgs(stickersEnum, m, int64(item.ItemID)))
 		if err != nil {
-			fmt.Println("tam")
+			logger.ERROR.Printf("Error inserting modifications for %v. Err: %v", item.ItemID, err)
 			return DbError
 		}
 	}
@@ -137,59 +134,43 @@ func (d db) InsertItem(item gt.Item) error {
 	for _, m := range item.Keychains {
 		err = qtx.InsertModifier(context.Background(), modToInsertModArgs(chainEnum, m, int64(item.ItemID)))
 		if err != nil {
-			fmt.Println("tut")
+			logger.ERROR.Printf("Error inserting modifications for %v. Err: %v", item.ItemID, err)
 			return DbError
 		}
 	}
 
+	logger.DEBUG.Printf("Successfully added %v to DB", item.ItemID)
 	return tx.Commit()
 }
 
-func migrateUp(db *sql.DB) error {
-	driver, err := sqlite.WithInstance(db, &sqlite.Config{})
-	if err != nil {
-		return err
-	}
-	currentDir, err := os.Getwd()
-	if err != nil {
-		return fmt.Errorf("failed to get current directory: %w", err)
-	}
-
-	migrationsDir := filepath.Join(currentDir, "cmd", "storage", "db", "sqlc", "sql")
-
-	migrationsPath := fmt.Sprintf("file://%s", migrationsDir)
-
-	m, err := migrate.NewWithDatabaseInstance(
-		migrationsPath, // Path to migration files
-		"sqlite3",
-		driver, // Driver instance
-	)
-	if err != nil {
-		return err
-	}
-
-	// Run migrations up
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return err
-	}
-
-	return nil
-}
-
-func InitDB(dbPath string) (db, error) {
+func InitDbWithFile(dbPath string) (db, error) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
-		fmt.Println(err)
-		return db{}, err
+		logger.ERROR.Printf("Unable to connect to DB. Err: %v", err)
+		return db{}, DbError
 	}
 	q := custSql.New(conn)
 
 	err = migrateUp(conn)
 	if err != nil {
-		fmt.Println(err)
+		logger.ERROR.Printf("Unable to migrate up. Err: %v", err)
+		return db{}, DbError
+	}
+
+	logger.DEBUG.Printf("DB init successfull")
+	return db{q, conn}, nil
+}
+
+func InitDbWithExistingConnection(conn *sql.DB) (db, error) {
+	q := custSql.New(conn)
+
+	err := migrateUp(conn)
+	if err != nil {
+		logger.ERROR.Printf("Unable to migrate up. Err: %v", err)
 		return db{}, err
 	}
 
+	logger.DEBUG.Printf("DB init successfull")
 	return db{q, conn}, nil
 }
 
