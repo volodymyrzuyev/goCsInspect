@@ -1,11 +1,12 @@
 package accounts
 
 import (
+	"errors"
 	"os"
 	"time"
 
 	"github.com/Philipp15b/go-steam/v3"
-	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
+	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	gt "github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
@@ -14,6 +15,8 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/cmd/storage"
 	"google.golang.org/protobuf/proto"
 )
+
+const timeOutDuration = time.Second * 30
 
 type Accounts interface {
 	AddAccount(Credentials) error
@@ -37,11 +40,13 @@ type accounts struct {
 func (a *accounts) AddAccount(creds Credentials) error {
 	err := creds.validate()
 	if err != nil {
+		logger.ERROR.Printf("Could not validate %v. Err: %v", creds.Username, err)
 		return err
 	}
 
 	authCode, err := creds.get2FA()
 	if err != nil {
+		logger.ERROR.Printf("Could not get 2FA code for %v. Err: %v", creds.Username, err)
 		return err
 	}
 
@@ -58,45 +63,74 @@ func (a *accounts) AddAccount(creds Credentials) error {
 
 	select {
 	case <-loginComplete:
-		logger.INFO.Printf("%v logged added to accounts", creds.Username)
+		logger.DEBUG.Printf("%v logged added to accounts", creds.Username)
 		return nil
-	case <-time.After(30 * time.Second):
+	case <-time.After(timeOutDuration):
 		logger.ERROR.Printf("%v login timeout", creds.Username)
-		return LoginTimeOut
+		return TimeOut
 	}
 }
 
 func (a *accounts) InspectWeapon(params gt.InspectParams) (gt.Item, error) {
 	clientIdx := a.getNextFreeAccount()
 	if clientIdx < 0 {
+		logger.ERROR.Print("There are no avaliable account")
 		return gt.Item{}, NoAvaliableAccounts
+	}
+
+	item, err := a.validateDBItem(params.ParamA)
+	if err == nil {
+		logger.DEBUG.Printf("Valid item is in DB. ItemID: %v", params.ParamA)
+		return item, nil
+	}
+	if !errors.Is(err, staleItem) && !errors.Is(err, storage.NoItem) {
+		logger.ERROR.Printf("Error getting item from DB %v. Err: %v", params.ParamA, err)
+		return gt.Item{}, InternalError
 	}
 
 	curClient := a.clients[clientIdx]
 
-	pip := &protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest{
+	pip := &csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest{
 		ParamM: proto.Uint64(uint64(params.ParamM)),
 		ParamA: proto.Uint64(uint64(params.ParamA)),
 		ParamD: proto.Uint64(uint64(params.ParamD)),
 		ParamS: proto.Uint64(uint64(params.ParamS)),
 	}
 
-	// crafting the message
 	msg := gamecoordinator.NewGCMsgProtobuf(730, 9156, pip)
-	wg := a.reqHandler.AddRequest(int(params.ParamA))
+
+	ch := make(chan error, 1)
+
+	a.reqHandler.AddRequest(int(params.ParamA), ch)
 
 	curClient.client.GC.Write(msg)
-	logger.DEBUG.Printf("%v is requesting skin, itemID: %v", curClient.username, params.ParamA)
+	logger.DEBUG.Printf("%v is requesting skin from GC, ItemID: %v", curClient.username, params.ParamA)
 
-	wg.Wait()
+	select {
+	case err := <-ch:
+		if err != nil {
+			logger.ERROR.Printf("Error with getting response for %v. Err: %v", params.ParamA, err)
+			return gt.Item{}, InternalError
+		}
+	case <-time.After(timeOutDuration):
+		logger.ERROR.Printf("No response for %v in response window", params.ParamA)
+		return gt.Item{}, TimeOut
+	}
 
 	return a.db.GetItem(params.ParamA)
+}
+
+func NewAccountsList(handler steam.GCPacketHandler, reqHandler req.RequestHandler, store storage.Storage) Accounts {
+	if handler == nil {
+		panic("No handler func for account")
+	}
+	return &accounts{handler: handler, reqHandler: reqHandler, db: store}
 }
 
 func (a *accounts) getNextFreeAccount() int {
 	for i, c := range a.clients {
 
-		if time.Now().Before(c.lastUsed.Add(1 * time.Second)) {
+		if time.Now().After(c.lastUsed.Add(1 * time.Second)) {
 			c.avaliable = true
 			logger.DEBUG.Printf("Cooldown passed on %v", c.username)
 		}
@@ -126,7 +160,7 @@ func (a *accounts) handleEvents(loginComplete chan bool, client *steam.Client, l
 			client.GC.SetGamesPlayed(730)
 			newAccount := account{
 				client:    client,
-				lastUsed:  time.Now(),
+				lastUsed:  time.Now().Add(-time.Second * 5),
 				avaliable: true,
 				username:  logInInfo.Username,
 			}
@@ -144,9 +178,28 @@ func (a *accounts) handleEvents(loginComplete chan bool, client *steam.Client, l
 	}
 }
 
-func NewAccountsList(handler steam.GCPacketHandler, reqHandler req.RequestHandler, store storage.Storage) Accounts {
-	if handler == nil {
-		panic("No handler func for account")
+func (a accounts) validateDBItem(itemID int64) (gt.Item, error) {
+	item, err := a.db.GetItem(itemID)
+	if err != nil {
+		return item, err
 	}
-	return &accounts{handler: handler, reqHandler: reqHandler, db: store}
+	if !itemNewEnough(item) {
+		err = a.db.DeleteItem(int64(item.ItemID))
+		if err != nil {
+			return item, err
+		}
+
+		return item, staleItem
+	}
+
+	return item, nil
+}
+
+func itemNewEnough(item gt.Item) bool {
+	week := time.Hour * 24 * 7
+	if time.Since(item.LastModified) < week {
+		return false
+	}
+
+	return true
 }

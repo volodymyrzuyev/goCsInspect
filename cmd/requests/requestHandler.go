@@ -8,13 +8,13 @@ import (
 )
 
 type RequestHandler interface {
-	AddRequest(A int) *sync.WaitGroup
-	FinishRequest(A int) error
+	AddRequest(A int, errChan chan error)
+	FinishRequest(A int, erR error) error
 }
 
 type request struct {
 	paramA int
-	wg     *sync.WaitGroup
+	ch     *chan error
 }
 
 type requestHandler struct {
@@ -22,37 +22,32 @@ type requestHandler struct {
 	mu            sync.Mutex
 }
 
-func (r *requestHandler) AddRequest(A int) *sync.WaitGroup {
+func (r *requestHandler) AddRequest(A int, errChan chan error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	if _, exists := r.inAirRequests[A]; exists {
 		logger.ERROR.Printf("Tried to add request %v, but it allready exists", A)
-		return nil
+		return
 	}
-
-	wg := &sync.WaitGroup{}
-	wg.Add(1)
 
 	r.inAirRequests[A] = request{
 		paramA: A,
-		wg:     wg,
+		ch:     &errChan,
 	}
-
-	return wg
 }
 
-func (r *requestHandler) FinishRequest(A int) error {
+func (r *requestHandler) FinishRequest(A int, erR error) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	req, exists := r.inAirRequests[A]
+	_, exists := r.inAirRequests[A]
 	if !exists {
 		logger.ERROR.Printf("Tried to finish %v, but it does not exist", A)
 		return errors.New("request not found")
 	}
 
-	req.wg.Done()
+	*r.inAirRequests[A].ch <- erR
 
 	delete(r.inAirRequests, A)
 
@@ -63,4 +58,3 @@ func NewRequestHandler() RequestHandler {
 	inAir := make(map[int]request)
 	return &requestHandler{inAirRequests: inAir}
 }
-

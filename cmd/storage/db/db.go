@@ -3,11 +3,13 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 	gt "github.com/volodymyrzuyev/goCsInspect/cmd/globalTypes"
 	"github.com/volodymyrzuyev/goCsInspect/cmd/logger"
+	"github.com/volodymyrzuyev/goCsInspect/cmd/storage"
 	custSql "github.com/volodymyrzuyev/goCsInspect/cmd/storage/db/sqlc"
 )
 
@@ -20,7 +22,7 @@ func (d db) DeleteItem(itemId int64) error {
 	tx, err := d.d.Begin()
 	if err != nil {
 		logger.ERROR.Printf("Error starting a tx. Err: %v", err)
-		return DbError
+		return checkErr(err)
 	}
 	defer tx.Rollback()
 
@@ -29,13 +31,13 @@ func (d db) DeleteItem(itemId int64) error {
 	err = qtx.DeleteItem(context.Background(), itemId)
 	if err != nil {
 		logger.ERROR.Printf("Error deleting %v from DB. Err: %v", itemId, err)
-		return DbError
+		return checkErr(err)
 	}
 
 	err = qtx.DeleteModifiers(context.Background(), itemId)
 	if err != nil {
 		logger.ERROR.Printf("Error deleting %v modifications from DB. Err: %v", itemId, err)
-		return DbError
+		return checkErr(err)
 	}
 
 	logger.DEBUG.Printf("Deleted %v from DB", itemId)
@@ -47,13 +49,13 @@ func (d db) GetItem(itemId int64) (gt.Item, error) {
 	item, err := d.q.GetItem(context.Background(), itemId)
 	if err != nil {
 		logger.ERROR.Printf("Error getting %v from DB. Err: %v", itemId, err)
-		return gt.Item{}, DbError
+		return gt.Item{}, checkErr(err)
 	}
 
 	mods, err := d.q.GetModifiers(context.Background(), itemId)
 	if err != nil {
 		logger.ERROR.Printf("Error getting %v modifications from DB. Err: %v", itemId, err)
-		return gt.Item{}, DbError
+		return gt.Item{}, checkErr(err)
 	}
 
 	stickers, chains := getStickersAndChains(mods)
@@ -138,7 +140,7 @@ func (d db) InsertItem(item gt.Item) error {
 	tx, err := d.d.Begin()
 	if err != nil {
 		logger.ERROR.Printf("Error starting a tx. Err: %v", err)
-		return DbError
+		return checkErr(err)
 	}
 	defer tx.Rollback()
 
@@ -147,14 +149,14 @@ func (d db) InsertItem(item gt.Item) error {
 	err = qtx.InsertItem(context.Background(), itemArgs)
 	if err != nil {
 		logger.ERROR.Printf("Error insering item %v. Error: %v", item.ItemID, err)
-		return DbError
+		return checkErr(err)
 	}
 
 	for _, m := range item.Stickers {
 		err = qtx.InsertModifier(context.Background(), modToInsertModArgs(stickersEnum, m, int64(item.ItemID)))
 		if err != nil {
 			logger.ERROR.Printf("Error inserting modifications for %v. Err: %v", item.ItemID, err)
-			return DbError
+			return checkErr(err)
 		}
 	}
 
@@ -162,7 +164,7 @@ func (d db) InsertItem(item gt.Item) error {
 		err = qtx.InsertModifier(context.Background(), modToInsertModArgs(chainEnum, m, int64(item.ItemID)))
 		if err != nil {
 			logger.ERROR.Printf("Error inserting modifications for %v. Err: %v", item.ItemID, err)
-			return DbError
+			return checkErr(err)
 		}
 	}
 
@@ -174,14 +176,14 @@ func InitDbWithFile(dbPath string) (db, error) {
 	conn, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
 		logger.ERROR.Printf("Unable to connect to DB. Err: %v", err)
-		return db{}, DbError
+		return db{}, checkErr(err)
 	}
 	q := custSql.New(conn)
 
 	err = migrateUp(conn)
 	if err != nil {
 		logger.ERROR.Printf("Unable to migrate up. Err: %v", err)
-		return db{}, DbError
+		return db{}, checkErr(err)
 	}
 
 	logger.DEBUG.Printf("DB init successfull")
@@ -194,7 +196,7 @@ func InitDbWithExistingConnection(conn *sql.DB) (db, error) {
 	err := migrateUp(conn)
 	if err != nil {
 		logger.ERROR.Printf("Unable to migrate up. Err: %v", err)
-		return db{}, err
+		return db{}, checkErr(err)
 	}
 
 	logger.DEBUG.Printf("DB init successfull")
@@ -263,4 +265,14 @@ func getNullString(s string) sql.NullString {
 
 func getNullFloat64(f float64) sql.NullFloat64 {
 	return sql.NullFloat64{Float64: f, Valid: true}
+}
+
+func checkErr(err error) error {
+	if errors.Is(err, sql.ErrNoRows) {
+		return storage.NoItem
+	}
+	if err == nil {
+		return nil
+	}
+	return storage.DbError
 }
