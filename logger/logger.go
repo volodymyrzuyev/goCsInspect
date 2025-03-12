@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"log"
+
+	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 type Logger interface {
@@ -42,6 +44,10 @@ func (l *logger) write(writer *log.Logger, format string, v ...any) {
 
 // Creates a logger that will output to the provided io.Writer
 func NewLogger(output io.Writer) Logger {
+	if output == nil {
+		panic("No writer provided, provide /dev/null if you do not want logs")
+	}
+
 	log := logger{
 		error: log.New(output, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile),
 		info:  log.New(output, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile),
