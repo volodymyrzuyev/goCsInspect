@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-
-	"github.com/sirupsen/logrus/hooks/writer"
 )
 
 type Logger interface {
