@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/Philipp15b/go-steam/v3"
+	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	"github.com/volodymyrzuyev/goCsInspect/logger"
-	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/volodymyrzuyev/goCsInspect/request"
 	"github.com/volodymyrzuyev/goCsInspect/types"
 )
 
-var TimeOutDuration = time.Second * 5
+var TimeOutDuration = time.Second * 10
 var RequestCooldown = time.Second * 2
 
 var (
@@ -22,9 +22,9 @@ var (
 )
 
 type Client interface {
-	LogIn(creds types.Credentials) error
+	LogIn(types.Credentials, steam.GCPacketHandler) error
 	LogOut()
-	RequestSkin()
+	RequestSkin(types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error)
 	Avaliable() bool
 }
 
@@ -40,6 +40,8 @@ type client struct {
 	disconected bool
 }
 
+var eventLoopRunner = runEventLoop
+
 func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) error {
 	c.log.Debug("Login request for %v", creds.Username)
 	logInInfo, err := getLoginDetails(creds)
@@ -50,16 +52,20 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 	c.username = creds.Username
 
 	curClient := steam.NewClient()
-	curClient.GC.RegisterPacketHandler(handler)
 
-	loginStatus := make(chan bool, 1)
+	loginStatus := make(chan bool)
 	exitChan := make(chan bool, 1)
 
 	c.log.Debug("Starting event loop for %v", creds.Username)
-	go runEventLoop(curClient, logInInfo, loginStatus, c.log, exitChan)
+	go eventLoopRunner(curClient, logInInfo, loginStatus, c.log, exitChan)
+
+	c.client = curClient
+	c.lastUsed = time.Now().Add(-5 * time.Second)
+	c.exitChan = &exitChan
 
 	select {
 	case <-loginStatus:
+		curClient.GC.RegisterPacketHandler(handler)
 		c.avaliable = true
 		c.disconected = false
 		return nil
@@ -71,6 +77,7 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 }
 
 func (c *client) LogOut() {
+	c.log.Debug("Client %v is disconected", c.username)
 	*c.exitChan <- true
 	c.avaliable = false
 	c.disconected = true
@@ -78,6 +85,9 @@ func (c *client) LogOut() {
 
 func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error) {
 	c.log.Debug("Client: %v is requested to inspect %v", c.username, inspectParams.A)
+
+	c.lastUsed = time.Now()
+
 	requestProto, err := getInspectDetails(inspectParams)
 	if err != nil {
 		return nil, err
@@ -104,6 +114,12 @@ func (c *client) sendGCRequest(msg *csProto.CMsgGCCStrike15V2_Client2GCEconPrevi
 }
 
 func (c *client) Avaliable() bool {
+	select {
+	case <-*c.exitChan:
+		c.disconected = true
+	default:
+		break
+	}
 	willBeAvaliable := c.lastUsed.Add(RequestCooldown)
 	return c.avaliable && !c.disconected && c.lastUsed.After(willBeAvaliable)
 }
@@ -129,8 +145,10 @@ func getLoginDetails(creds types.Credentials) (steam.LogOnDetails, error) {
 }
 
 func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
+	curClient.Connect()
 	select {
 	case <-exit:
+		exit <- true
 		log.Debug("Stopping event loop for %v", logInInfo.Username)
 		return
 	default:
@@ -141,6 +159,7 @@ func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login c
 				curClient.Auth.LogOn(&logInInfo)
 			case *steam.LoggedOnEvent:
 				curClient.Social.SetPersonaState(steamlang.EPersonaState_Busy)
+				log.Debug("Account %v fully connected", logInInfo.Username)
 				login <- true
 			case steam.FatalErrorEvent:
 				log.Error("Account: %v disconected due to error: %v", logInInfo.Username, e)
@@ -165,4 +184,16 @@ func getInspectDetails(params types.InspectParameters) (*csProto.CMsgGCCStrike15
 	}
 
 	return &requestProto, nil
+}
+
+func NewClient(requestHandler request.RequestHandler, log logger.Logger) Client {
+	if requestHandler == nil || log == nil {
+		panic("Reqest handler and log can not be null")
+	}
+
+	return &client{
+		requestHandler: requestHandler,
+		log:            log,
+		disconected:    true,
+	}
 }
