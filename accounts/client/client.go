@@ -13,12 +13,13 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/types"
 )
 
-var TimeOutDuration = time.Second * 10
+var TimeOutDuration = time.Second * 5
 var RequestCooldown = time.Second * 2
 
 var (
-	UnableToLogin = errors.New("Unable to login")
-	TimeoutPassed = errors.New("Request wait passed")
+	UnableToLogin      = errors.New("Unable to login")
+	TimeoutPassed      = errors.New("Request wait passed")
+	ClientNotAvaliable = errors.New("Client is not avaliable")
 )
 
 type Client interface {
@@ -55,7 +56,6 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 
 	loginStatus := make(chan bool)
 	exitChan := make(chan bool, 1)
-
 	c.log.Debug("Starting event loop for %v", creds.Username)
 	go eventLoopRunner(curClient, logInInfo, loginStatus, c.log, exitChan)
 
@@ -68,6 +68,7 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 		curClient.GC.RegisterPacketHandler(handler)
 		c.avaliable = true
 		c.disconected = false
+		c.log.Debug("Client: %v properly logged in", c.username)
 		return nil
 	case <-time.After(TimeOutDuration):
 		c.log.Debug("%v timed out", c.username)
@@ -77,7 +78,7 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 }
 
 func (c *client) LogOut() {
-	c.log.Debug("Client %v is disconected", c.username)
+	c.log.Debug("Requesting to stop event loop for Client %v", c.username)
 	*c.exitChan <- true
 	c.avaliable = false
 	c.disconected = true
@@ -85,11 +86,16 @@ func (c *client) LogOut() {
 
 func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error) {
 	c.log.Debug("Client: %v is requested to inspect %v", c.username, inspectParams.A)
+	if !c.Avaliable() {
+		c.log.Debug("Client: %v is not avaliable", c.username)
+		return nil, ClientNotAvaliable
+	}
 
 	c.lastUsed = time.Now()
 
 	requestProto, err := getInspectDetails(inspectParams)
 	if err != nil {
+		c.log.Debug("Client: %v, item: %v invalid link", c.username, inspectParams.A)
 		return nil, err
 	}
 
