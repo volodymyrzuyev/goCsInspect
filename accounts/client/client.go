@@ -13,9 +13,6 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/types"
 )
 
-var TimeOutDuration = time.Second * 5
-var RequestCooldown = time.Second * 2
-
 var (
 	UnableToLogin      = errors.New("Unable to login")
 	TimeoutPassed      = errors.New("Request wait passed")
@@ -70,7 +67,7 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 		c.disconected = false
 		c.log.Debug("Client: %v properly logged in", c.username)
 		return nil
-	case <-time.After(TimeOutDuration):
+	case <-time.After(types.TimeOutDuration):
 		c.log.Debug("%v timed out", c.username)
 		exitChan <- true
 		return UnableToLogin
@@ -105,7 +102,7 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 	case resp := <-*respChan:
 		c.log.Debug("Client: %v successfully got response for %v", c.username, inspectParams.A)
 		return resp.Response, resp.Error
-	case <-time.After(TimeOutDuration):
+	case <-time.After(types.TimeOutDuration):
 		c.log.Error("Client: %v timed out when requesting %v", c.username, inspectParams.A)
 		return nil, TimeoutPassed
 	}
@@ -113,8 +110,7 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 
 func (c *client) sendGCRequest(msg *csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) *chan types.Response {
 	c.log.Debug("Client: %v is sending GC message to inspect %v", c.username, msg.ParamA)
-	msgType := csProto.ECsgoGCMsg_k_EMsgGCCStrike15_v2_Client2GCEconPreviewDataBlockRequest
-	proto := gamecoordinator.NewGCMsgProtobuf(730, uint32(msgType), msg)
+	proto := gamecoordinator.NewGCMsgProtobuf(730, uint32(types.InspectRequestProtoID), msg)
 	c.client.GC.Write(proto)
 	return c.requestHandler.RegisterRequest(*msg.ParamA)
 }
@@ -126,7 +122,7 @@ func (c *client) Avaliable() bool {
 	default:
 		break
 	}
-	willBeAvaliable := c.lastUsed.Add(RequestCooldown)
+	willBeAvaliable := c.lastUsed.Add(types.RequestCooldown)
 	return c.avaliable && !c.disconected && c.lastUsed.After(willBeAvaliable)
 }
 
