@@ -39,3 +39,10 @@ func (r responseHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	r.log.Debug("Successfully got response for %v", msg.GetIteminfo().Itemid)
 	r.reqHandler.ResolverRequest(msg.GetIteminfo(), nil)
 }
+
+func NewResponseHandler(l logger.Logger, r request.RequestHandler) ResponseHandler {
+	if l == nil || r == nil {
+		panic("Logger and RequestHandler are needed for ResponseHandler")
+	}
+	return responseHandler{log: l, reqHandler: r}
+}
