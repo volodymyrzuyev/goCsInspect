@@ -115,9 +115,6 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 	}
 }
 
-func (c *client) sendGCRequest(msg *csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) {
-}
-
 func (c *client) Avaliable() bool {
 	select {
 	case <-*c.exitChan:
