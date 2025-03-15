@@ -31,6 +31,9 @@ func (r responseHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 
 	var msg protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockResponse
 	err := proto.Unmarshal(packet.Body, &msg)
+	if err == nil {
+		r.log.Debug("Replaying to item id %v", *msg.Iteminfo.Itemid)
+	}
 	*r.responseChan <- types.Response{Response: msg.GetIteminfo(), Error: err}
 }
 

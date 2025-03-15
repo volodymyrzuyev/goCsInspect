@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"testing"
+	"time"
 
 	"github.com/Philipp15b/go-steam/v3"
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,7 @@ func TestLogIn(t *testing.T) {
 	t.Run("Valid", func(t *testing.T) {
 		var wantErr error
 
-		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
 			login <- true
 		}
 		cli := NewClient(log)
@@ -40,7 +41,7 @@ func TestLogIn(t *testing.T) {
 	t.Run("Timeout", func(t *testing.T) {
 		wantErr := UnableToLogin
 
-		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
 			return
 		}
 		cli := NewClient(log)
@@ -59,11 +60,12 @@ func TestLogout(t *testing.T) {
 
 	t.Run("Valid", func(t *testing.T) {
 		ch := make(chan bool)
-		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
 			// tell the system we logged in
 			login <- true
 			select {
-			case <-exit:
+			case <-*exit:
+				*exit <- true
 				ch <- true
 			}
 		}
@@ -82,4 +84,56 @@ func TestLogout(t *testing.T) {
 
 	})
 
+}
+
+func TestAvaliable(t *testing.T) {
+	t.Run("Post login", func(t *testing.T) {
+		var buffer bytes.Buffer
+		log := logger.NewLogger(&buffer)
+
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
+			// tell the system we logged in
+			login <- true
+		}
+
+		cli := NewClient(log)
+		cli.LogIn(validCredentials())
+
+		assert.True(t, cli.Avaliable(), "Client should be avalible after login")
+	})
+
+	t.Run("Post inspect", func(t *testing.T) {
+		var buffer bytes.Buffer
+		log := logger.NewLogger(&buffer)
+
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
+			// tell the system we logged in
+			login <- true
+		}
+
+		cli := client{log: log, disconected: true}
+		cli.LogIn(validCredentials())
+
+		cli.lastUsed = time.Now()
+
+		assert.False(t, cli.Avaliable(), "Client should not be avaliable right after inspect")
+	})
+
+	t.Run("Post inspect + wait", func(t *testing.T) {
+		var buffer bytes.Buffer
+		log := logger.NewLogger(&buffer)
+
+		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
+			// tell the system we logged in
+			login <- true
+		}
+
+		cli := client{log: log, disconected: true}
+		cli.LogIn(validCredentials())
+
+		cli.lastUsed = time.Now()
+		time.Sleep(2 * time.Second)
+
+		assert.True(t, cli.Avaliable(), "Client avaliability should reset")
+	})
 }

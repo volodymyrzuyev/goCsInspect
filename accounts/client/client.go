@@ -7,7 +7,6 @@ import (
 	"github.com/Philipp15b/go-steam/v3"
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
-	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	"github.com/volodymyrzuyev/goCsInspect/logger"
 	"github.com/volodymyrzuyev/goCsInspect/response"
 	"github.com/volodymyrzuyev/goCsInspect/types"
@@ -33,8 +32,7 @@ type client struct {
 	username     string
 	lastUsed     time.Time
 	exitChan     *chan bool
-	responseChan chan types.Response
-	avaliable    bool
+	responseChan *chan types.Response
 	disconected  bool
 }
 
@@ -47,42 +45,47 @@ func (c *client) LogIn(creds types.Credentials) error {
 		c.log.Error("%v credentials are invalid", creds.Username)
 		return err
 	}
-	c.username = creds.Username
-
-	curClient := steam.NewClient()
-	c.client = curClient
-
-	loginStatus := make(chan bool)
-	exitChan := make(chan bool, 1)
-
-	c.exitChan = &exitChan
+	c.setPreLoginState(creds.Username)
 
 	c.log.Debug("Starting event loop for %v", creds.Username)
-	go eventLoopRunner(curClient, logInInfo, loginStatus, c.log, exitChan)
+	loginStatus := make(chan bool)
+	go eventLoopRunner(c.client, logInInfo, loginStatus, c.log, c.exitChan)
 
-	c.lastUsed = time.Now().Add(-5 * time.Second)
-	c.responseChan = make(chan types.Response, 1)
-
-	handler := response.NewResponseHandler(c.log, &c.responseChan, c.username)
+	handler := response.NewResponseHandler(c.log, c.responseChan, c.username)
 
 	select {
 	case <-loginStatus:
-		curClient.GC.RegisterPacketHandler(handler)
-		c.avaliable = true
-		c.disconected = false
+		c.client.GC.RegisterPacketHandler(handler)
+		c.setPostSuccessfulLoginState()
 		c.log.Debug("Client: %v properly logged in", c.username)
 		return nil
 	case <-time.After(types.TimeOutDuration):
-		c.log.Debug("%v timed out", c.username)
-		exitChan <- true
+		c.log.Debug("%v timed out during login", c.username)
+		*c.exitChan <- true
 		return UnableToLogin
 	}
+}
+
+func (c *client) setPreLoginState(username string) {
+	c.username = username
+	curClient := steam.NewClient()
+	c.client = curClient
+
+	resp := make(chan types.Response)
+	c.responseChan = &resp
+	exit := make(chan bool, 1)
+	c.exitChan = &exit
+
+}
+
+func (c *client) setPostSuccessfulLoginState() {
+	c.disconected = false
+	c.lastUsed = time.Now().Add(-5 * time.Second)
 }
 
 func (c *client) LogOut() {
 	c.log.Debug("Requesting to stop event loop for Client %v", c.username)
 	*c.exitChan <- true
-	c.avaliable = false
 	c.disconected = true
 }
 
@@ -106,8 +109,9 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 	c.client.GC.Write(proto)
 
 	select {
-	case resp := <-*&c.responseChan:
+	case resp := <-*c.responseChan:
 		c.log.Debug("Client: %v successfully got response for %v", c.username, inspectParams.A)
+		c.lastUsed = time.Now()
 		return resp.Response, resp.Error
 	case <-time.After(types.TimeOutDuration):
 		c.log.Error("Client: %v timed out when requesting %v", c.username, inspectParams.A)
@@ -120,10 +124,9 @@ func (c *client) Avaliable() bool {
 	case <-*c.exitChan:
 		c.disconected = true
 	default:
-		break
 	}
 	willBeAvaliable := c.lastUsed.Add(types.RequestCooldown)
-	return c.avaliable && !c.disconected && c.lastUsed.After(willBeAvaliable)
+	return !c.disconected && time.Now().After(willBeAvaliable)
 }
 
 func getLoginDetails(creds types.Credentials) (steam.LogOnDetails, error) {
@@ -146,11 +149,11 @@ func getLoginDetails(creds types.Credentials) (steam.LogOnDetails, error) {
 	return logInInfo, nil
 }
 
-func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
+func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit *chan bool) {
 	curClient.Connect()
 	select {
-	case <-exit:
-		exit <- true
+	case <-*exit:
+		*exit <- true
 		log.Debug("Stopping event loop for %v", logInInfo.Username)
 		return
 	default:
@@ -160,17 +163,21 @@ func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login c
 				log.Debug("Connection event Username: %v", logInInfo.Username)
 				curClient.Auth.LogOn(&logInInfo)
 			case *steam.LoggedOnEvent:
-				curClient.Social.SetPersonaState(steamlang.EPersonaState_Busy)
-				log.Debug("Account %v fully connected", logInInfo.Username)
+				curClient.GC.SetGamesPlayed(730)
+				log.Debug("Client: %v fully connected", logInInfo.Username)
 				login <- true
+			case *steam.DisconnectedEvent:
+				log.Error("Client: %v disconnected", logInInfo.Username)
+				*exit <- true
 			case steam.FatalErrorEvent:
-				log.Error("Account: %v disconected due to error: %v", logInInfo.Username, e)
-				exit <- true
+				log.Error("Client: %v disconected due to error: %v", logInInfo.Username, e)
+				*exit <- true
 			case error:
-				log.Error("Account: %v go an error: %v", logInInfo.Username, e)
+				log.Error("Client: %v go an error: %v", logInInfo.Username, e)
 			}
 		}
 	}
+
 }
 
 func getInspectDetails(params types.InspectParameters) (*csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest, error) {
