@@ -5,19 +5,10 @@ import (
 	"testing"
 
 	"github.com/Philipp15b/go-steam/v3"
-	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/stretchr/testify/assert"
 	"github.com/volodymyrzuyev/goCsInspect/logger"
 	"github.com/volodymyrzuyev/goCsInspect/types"
 )
-
-type mock struct{}
-
-func (r mock) RegisterRequest(l uint64) *chan types.Response {
-	ch := make(chan types.Response)
-	return &ch
-}
-func (r mock) HandleGCPacket(*gamecoordinator.GCPacket) {}
 
 func validCredentials() types.Credentials {
 	return types.Credentials{
@@ -38,8 +29,8 @@ func TestLogIn(t *testing.T) {
 		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
 			login <- true
 		}
-		cli := NewClient(mock{}, log)
-		err := cli.LogIn(validCredentials(), mock{})
+		cli := NewClient(log)
+		err := cli.LogIn(validCredentials())
 
 		assert.Equal(t, wantErr, err, "Everything provided, should not fail")
 
@@ -52,8 +43,8 @@ func TestLogIn(t *testing.T) {
 		eventLoopRunner = func(curClient *steam.Client, logInInfo steam.LogOnDetails, login chan bool, log logger.Logger, exit chan bool) {
 			return
 		}
-		cli := NewClient(mock{}, log)
-		err := cli.LogIn(validCredentials(), mock{})
+		cli := NewClient(log)
+		err := cli.LogIn(validCredentials())
 
 		assert.Equal(t, wantErr, err, "Chan never returns, should exit")
 
@@ -77,7 +68,7 @@ func TestLogout(t *testing.T) {
 			}
 		}
 		cli := client{log: log, disconected: true}
-		cli.LogIn(validCredentials(), mock{})
+		cli.LogIn(validCredentials())
 
 		cli.LogOut()
 		var ret bool

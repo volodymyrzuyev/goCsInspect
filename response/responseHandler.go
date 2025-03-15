@@ -4,7 +4,6 @@ import (
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/volodymyrzuyev/goCsInspect/logger"
-	"github.com/volodymyrzuyev/goCsInspect/request"
 	"github.com/volodymyrzuyev/goCsInspect/types"
 	"google.golang.org/protobuf/proto"
 )
@@ -14,8 +13,9 @@ type ResponseHandler interface {
 }
 
 type responseHandler struct {
-	log        logger.Logger
-	reqHandler request.RequestHandler
+	log            logger.Logger
+	responseChan   *chan types.Response
+	clientUsername string
 }
 
 func (r responseHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
@@ -30,19 +30,14 @@ func (r responseHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	}
 
 	var msg protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockResponse
-	if err := proto.Unmarshal(packet.Body, &msg); err != nil {
-		r.log.Debug("Error decoding message")
-		r.reqHandler.ResolverRequest(nil, err)
-		return
-	}
-
-	r.log.Debug("Successfully got response for %v", msg.GetIteminfo().Itemid)
-	r.reqHandler.ResolverRequest(msg.GetIteminfo(), nil)
+	err := proto.Unmarshal(packet.Body, &msg)
+	*r.responseChan <- types.Response{Response: msg.GetIteminfo(), Error: err}
 }
 
-func NewResponseHandler(l logger.Logger, r request.RequestHandler) ResponseHandler {
+func NewResponseHandler(l logger.Logger, r *chan types.Response, clientName string) ResponseHandler {
 	if l == nil || r == nil {
 		panic("Logger and RequestHandler are needed for ResponseHandler")
 	}
-	return responseHandler{log: l, reqHandler: r}
+	l.Debug("Initializing responseHandler for Client %v", clientName)
+	return responseHandler{log: l, responseChan: r, clientUsername: clientName}
 }

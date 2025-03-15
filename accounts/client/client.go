@@ -9,7 +9,7 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 	"github.com/volodymyrzuyev/goCsInspect/logger"
-	"github.com/volodymyrzuyev/goCsInspect/request"
+	"github.com/volodymyrzuyev/goCsInspect/response"
 	"github.com/volodymyrzuyev/goCsInspect/types"
 )
 
@@ -20,27 +20,27 @@ var (
 )
 
 type Client interface {
-	LogIn(types.Credentials, steam.GCPacketHandler) error
+	LogIn(types.Credentials) error
 	LogOut()
 	RequestSkin(types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error)
 	Avaliable() bool
 }
 
 type client struct {
-	requestHandler request.RequestHandler
-	log            logger.Logger
+	log logger.Logger
 
-	client      *steam.Client
-	username    string
-	lastUsed    time.Time
-	exitChan    *chan bool
-	avaliable   bool
-	disconected bool
+	client       *steam.Client
+	username     string
+	lastUsed     time.Time
+	exitChan     *chan bool
+	responseChan chan types.Response
+	avaliable    bool
+	disconected  bool
 }
 
 var eventLoopRunner = runEventLoop
 
-func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) error {
+func (c *client) LogIn(creds types.Credentials) error {
 	c.log.Debug("Login request for %v", creds.Username)
 	logInInfo, err := getLoginDetails(creds)
 	if err != nil {
@@ -50,15 +50,20 @@ func (c *client) LogIn(creds types.Credentials, handler steam.GCPacketHandler) e
 	c.username = creds.Username
 
 	curClient := steam.NewClient()
+	c.client = curClient
 
 	loginStatus := make(chan bool)
 	exitChan := make(chan bool, 1)
+
+	c.exitChan = &exitChan
+
 	c.log.Debug("Starting event loop for %v", creds.Username)
 	go eventLoopRunner(curClient, logInInfo, loginStatus, c.log, exitChan)
 
-	c.client = curClient
 	c.lastUsed = time.Now().Add(-5 * time.Second)
-	c.exitChan = &exitChan
+	c.responseChan = make(chan types.Response, 1)
+
+	handler := response.NewResponseHandler(c.log, &c.responseChan, c.username)
 
 	select {
 	case <-loginStatus:
@@ -96,10 +101,12 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 		return nil, err
 	}
 
-	respChan := c.sendGCRequest(requestProto)
+	c.log.Debug("Client: %v is sending GC message to inspect %v", c.username, requestProto.ParamA)
+	proto := gamecoordinator.NewGCMsgProtobuf(730, uint32(types.InspectRequestProtoID), requestProto)
+	c.client.GC.Write(proto)
 
 	select {
-	case resp := <-*respChan:
+	case resp := <-*&c.responseChan:
 		c.log.Debug("Client: %v successfully got response for %v", c.username, inspectParams.A)
 		return resp.Response, resp.Error
 	case <-time.After(types.TimeOutDuration):
@@ -108,11 +115,7 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 	}
 }
 
-func (c *client) sendGCRequest(msg *csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) *chan types.Response {
-	c.log.Debug("Client: %v is sending GC message to inspect %v", c.username, msg.ParamA)
-	proto := gamecoordinator.NewGCMsgProtobuf(730, uint32(types.InspectRequestProtoID), msg)
-	c.client.GC.Write(proto)
-	return c.requestHandler.RegisterRequest(*msg.ParamA)
+func (c *client) sendGCRequest(msg *csProto.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) {
 }
 
 func (c *client) Avaliable() bool {
@@ -188,14 +191,13 @@ func getInspectDetails(params types.InspectParameters) (*csProto.CMsgGCCStrike15
 	return &requestProto, nil
 }
 
-func NewClient(requestHandler request.RequestHandler, log logger.Logger) Client {
-	if requestHandler == nil || log == nil {
-		panic("Reqest handler and log can not be null")
+func NewClient(log logger.Logger) Client {
+	if log == nil {
+		panic("Log is needed to run client")
 	}
 
 	return &client{
-		requestHandler: requestHandler,
-		log:            log,
-		disconected:    true,
+		log:         log,
+		disconected: true,
 	}
 }
