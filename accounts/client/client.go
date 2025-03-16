@@ -23,6 +23,7 @@ type Client interface {
 	LogOut()
 	RequestSkin(types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error)
 	Avaliable() bool
+	Username() string
 }
 
 type client struct {
@@ -104,7 +105,7 @@ func (c *client) RequestSkin(inspectParams types.InspectParameters) (*csProto.CE
 		return nil, err
 	}
 
-	c.log.Debug("Client: %v is sending GC message to inspect %v", c.username, requestProto.ParamA)
+	c.log.Debug("Client: %v is sending GC message to inspect %v", c.username, inspectParams.A)
 	proto := gamecoordinator.NewGCMsgProtobuf(730, uint32(types.InspectRequestProtoID), requestProto)
 	c.client.GC.Write(proto)
 
@@ -127,6 +128,10 @@ func (c *client) Avaliable() bool {
 	}
 	willBeAvaliable := c.lastUsed.Add(types.RequestCooldown)
 	return !c.disconected && time.Now().After(willBeAvaliable)
+}
+
+func (c client) Username() string {
+	return c.username
 }
 
 func getLoginDetails(creds types.Credentials) (steam.LogOnDetails, error) {
@@ -164,7 +169,6 @@ func runEventLoop(curClient *steam.Client, logInInfo steam.LogOnDetails, login c
 				curClient.Auth.LogOn(&logInInfo)
 			case *steam.LoggedOnEvent:
 				curClient.GC.SetGamesPlayed(730)
-				log.Debug("Client: %v fully connected", logInInfo.Username)
 				login <- true
 			case *steam.DisconnectedEvent:
 				log.Error("Client: %v disconnected", logInInfo.Username)
