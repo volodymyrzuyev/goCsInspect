@@ -22,7 +22,7 @@ func newServerList(client *steam.Client, listPath string) *serverList {
 	}
 }
 
-func (s *serverList) HandleEvent(event interface{}) {
+func (s *serverList) HandleEvent(event any) {
 	switch e := event.(type) {
 	case *steam.ClientCMListEvent:
 		d, err := json.Marshal(e.Addresses)

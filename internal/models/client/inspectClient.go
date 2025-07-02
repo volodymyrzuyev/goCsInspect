@@ -60,7 +60,7 @@ func (c *inspectClient) LogIn(creds types.Credentials) error {
 	case <-time.After(config.TimeOutDuration):
 		c.LogOff()
 		slog.Warn("Client timedout", "username", logOnDetails.Username)
-		return errors.UnableToConnect
+		return errors.ErrClientUnableToConnect
 
 	}
 }
