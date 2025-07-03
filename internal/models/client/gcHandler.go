@@ -10,16 +10,12 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type GcHandler interface {
-	HandleGCPacket(*gamecoordinator.GCPacket)
-}
-
 type gcHandler struct {
 	responseChan chan types.Response
 	username     string
 }
 
-func NewGcHandler(r chan types.Response, username string) GcHandler {
+func NewGcHandler(r chan types.Response, username string) gcHandler {
 	return gcHandler{responseChan: r, username: username}
 }
 
