@@ -7,6 +7,7 @@ import "errors"
 var (
 	ErrClientUnableToConnect = errors.New("client unable to connect")
 	ErrClientTimeout         = errors.New("client timeout when fetching skin")
+	ErrClientUnavaliable     = errors.New("client is unavaliable now")
 )
 
 // Credentials

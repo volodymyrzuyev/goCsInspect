@@ -13,10 +13,12 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
+	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 )
 
 type InspectClient interface {
 	IsLoggedIn() bool
+	IsAvaliable() bool
 
 	LogIn(credentials types.Credentials) error
 	LogOff()
@@ -26,49 +28,56 @@ type InspectClient interface {
 
 type inspectClient struct {
 	username string
+	lastUsed time.Time
 
-	exitCh       chan bool
-	gcResponseCh chan types.Response
-	client       *steam.Client
+	exitCh chan bool
+	client *steam.Client
+
+	gcHandler gcHandler.GcHandler
 }
 
-func NewInspectClient() InspectClient {
+func NewInspectClient(gcHandler gcHandler.GcHandler) InspectClient {
 	return &inspectClient{
-		client:       steam.NewClient(),
-		gcResponseCh: make(chan types.Response),
-		exitCh:       make(chan bool),
+		client:    steam.NewClient(),
+		exitCh:    make(chan bool),
+		gcHandler: gcHandler,
 	}
 }
 
 func (c *inspectClient) LogIn(creds types.Credentials) error {
 	slog.Debug("Login attempt", "username", creds.Username)
+
 	logOnDetails, err := creds.GenerateLogOnDetails()
 	if err != nil {
-		slog.Error("Invalid Credentials", "username", creds.Username, "error", err)
+		slog.Error("Invalid credentials", "username", creds.Username, "error", err.Error())
 		return err
 	}
 
 	logIn := make(chan error)
+
 	go runClientLoop(c.client, logOnDetails, c.exitCh, logIn)
+
+	c.username = logOnDetails.Username
 
 	select {
 	case err := <-logIn:
 		if err != nil {
-			slog.Info("Client got error during connection", "username", logOnDetails.Username, "error", err.Error())
+			slog.Error("Client got error during connection", "username", c.username, "error", err.Error())
 			return err
 		}
-		slog.Info("Client login complete", "username", logOnDetails.Username)
-		c.client.GC.RegisterPacketHandler(NewGcHandler(c.gcResponseCh, logOnDetails.Username))
-		slog.Debug("Registered GC handler", "username", logOnDetails.Username)
+		slog.Info("Client login complete", "username", c.username)
+		c.client.GC.RegisterPacketHandler(c.gcHandler)
+		c.lastUsed = time.Now().Add(-config.RequestCooldown * 2)
 		return nil
 	case <-time.After(config.TimeOutDuration):
 		c.LogOff()
-		slog.Warn("Client timed out", "username", logOnDetails.Username)
+		slog.Error("Client timed out during login", "username", c.username)
 		return errors.ErrClientUnableToConnect
 	}
 }
 
 func (c *inspectClient) LogOff() {
+	slog.Info("Stopping client", "username", c.username)
 	if !c.IsLoggedIn() {
 		return
 	}
@@ -79,47 +88,46 @@ func (c *inspectClient) LogOff() {
 func (c *inspectClient) IsLoggedIn() bool {
 	return c.client != nil && c.client.Connected()
 }
+func (c *inspectClient) IsAvaliable() bool {
+	willBeAvaliable := c.lastUsed.Add(config.RequestCooldown)
+	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
+}
 
 func (c *inspectClient) InspectItem(params types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error) {
-	if !c.IsLoggedIn() {
-		return nil, errors.ErrClientUnableToConnect
+	slog.Debug("Client requested to inspect skin", "username", c.username, "lastUsed", c.lastUsed, "inspect_params", params)
+	if !c.IsAvaliable() {
+		slog.Error("Client not avaliable to inspect skin", "username", c.username)
+		return nil, errors.ErrClientUnavaliable
 	}
 
 	requestProto, err := params.GenerateGcRequestProto()
 	if err != nil {
+		slog.Error("Client unable to parse inspect link", "username", c.username, "inspect_params", params)
 		return nil, err
 	}
 
 	proto := gamecoordinator.NewGCMsgProtobuf(consts.CsAppID, uint32(consts.InspectRequestProtoID), requestProto)
+	slog.Debug("Sending inspect request", "username", c.username, "inspect_params", params)
 	c.client.GC.Write(proto)
+	c.lastUsed = time.Now()
 
-	select {
-	case response := <-c.gcResponseCh:
-		if response.Error != nil {
-			slog.Debug("Client error when fetching skin", "username", c.username, "skin_id", params.A, "error", response.Error.Error())
-			return nil, response.Error
-		}
-
-		slog.Debug("Client got skin details", "username", c.username, "skin_id", params.A)
-		return response.Response, nil
-	case <-time.After(config.TimeOutDuration):
-		slog.Warn("Client timed out fetching skin", "username", c.username, "skin_id", params.A)
-		return nil, errors.ErrClientTimeout
-	}
+	return c.gcHandler.GetResponse(params.A)
 }
 
 func runClientLoop(client *steam.Client, creds steam.LogOnDetails, exitCh <-chan bool, loginCh chan<- error) {
 	auth := newAuth(client, &creds, loginCh)
 	serverList := newServerList(client, "servers/list.json")
-	debug := newDebug(creds.Username, slog.Default(), slog.Default())
-	client.RegisterPacketHandler(debug)
+	debug := newDebug(creds.Username, config.DebugLogger, config.DebugLogger)
+	if config.IsDebug {
+		client.RegisterPacketHandler(debug)
+	}
 
 	serverList.Connect()
 
 	for {
 		select {
 		case <-exitCh:
-			slog.Debug("Stopping client loop", "username", auth.details.Username)
+			slog.Info("Stopping client loop", "username", auth.details.Username)
 			return
 		case event, ok := <-client.Events():
 			if !ok {
@@ -127,14 +135,18 @@ func runClientLoop(client *steam.Client, creds steam.LogOnDetails, exitCh <-chan
 				return
 			}
 
-			// debug.HandleEvent(event)
 			auth.HandleEvent(event)
 			serverList.HandleEvent(event)
+			if config.IsDebug {
+				debug.HandleEvent(event)
+			}
+
 			switch e := event.(type) {
 			case error:
-				slog.Error("Steam client event error", "username", auth.details.Username, "error", e)
+				slog.Warn("Steam client event error", "username", auth.details.Username, "error", e.Error())
 			case *steam.LoggedOnEvent:
 				client.Social.SetPersonaState(steamlang.EPersonaState_Online)
+				client.GC.SetGamesPlayed(consts.CsAppID)
 			}
 		}
 	}
