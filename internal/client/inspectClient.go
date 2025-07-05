@@ -1,6 +1,7 @@
 package client
 
 import (
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -94,7 +95,7 @@ func (c *inspectClient) IsAvaliable() bool {
 }
 
 func (c *inspectClient) InspectItem(params types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error) {
-	slog.Debug("Client requested to inspect skin", "username", c.username, "lastUsed", c.lastUsed, "inspect_params", params)
+	slog.Debug("Client requested to inspect skin", "username", c.username, "lastUsed", c.lastUsed.Format(time.TimeOnly), "inspect_params", fmt.Sprintf("%+v", params))
 	if !c.IsAvaliable() {
 		slog.Error("Client not avaliable to inspect skin", "username", c.username)
 		return nil, errors.ErrClientUnavaliable
@@ -107,7 +108,7 @@ func (c *inspectClient) InspectItem(params types.InspectParameters) (*csProto.CE
 	}
 
 	proto := gamecoordinator.NewGCMsgProtobuf(consts.CsAppID, uint32(consts.InspectRequestProtoID), requestProto)
-	slog.Debug("Sending inspect request", "username", c.username, "inspect_params", params)
+	slog.Debug("Sending inspect request", "username", c.username, "inspect_params", fmt.Sprintf("%+v", params))
 	c.client.GC.Write(proto)
 	c.lastUsed = time.Now()
 
