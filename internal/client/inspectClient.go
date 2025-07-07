@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/Philipp15b/go-steam/v3"
+	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 
-	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/volodymyrzuyev/goCsInspect/common/consts"
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/common/types"
@@ -24,7 +24,7 @@ type InspectClient interface {
 	LogIn(credentials types.Credentials) error
 	LogOff()
 
-	InspectItem(params types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error)
+	InspectItem(params types.InspectParameters) (*protobuf.CEconItemPreviewDataBlock, error)
 }
 
 type inspectClient struct {
@@ -94,7 +94,7 @@ func (c *inspectClient) IsAvaliable() bool {
 	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
 }
 
-func (c *inspectClient) InspectItem(params types.InspectParameters) (*csProto.CEconItemPreviewDataBlock, error) {
+func (c *inspectClient) InspectItem(params types.InspectParameters) (*protobuf.CEconItemPreviewDataBlock, error) {
 	slog.Debug("Client requested to inspect skin", "username", c.username, "lastUsed", c.lastUsed.Format(time.TimeOnly), "inspect_params", fmt.Sprintf("%+v", params))
 	if !c.IsAvaliable() {
 		slog.Error("Client not avaliable to inspect skin", "username", c.username)

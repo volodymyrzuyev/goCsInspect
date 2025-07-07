@@ -10,6 +10,9 @@ var (
 	TimeOutDuration = 10 * time.Second
 	RequestCooldown = 10 * time.Second
 
+	EnglishFile = "./game_files/csgo_english.txt"
+	GameItems   = "./game_files/items_game.txt"
+
 	IsDebug       = true
 	DebugLocation = "./debug/logs"
 	DebugLogger   = getDebugLogger()

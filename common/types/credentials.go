@@ -16,7 +16,7 @@ type Credentials struct {
 
 func (c Credentials) Validate() (err error) {
 	if c.Username == "" || c.Password == "" || (c.TwoFactorCode == "" && c.SharedSecret == "") {
-		return errors.ErrInvalidCredentials
+		return errors.ErrInsufficientCredentials
 	}
 
 	return
