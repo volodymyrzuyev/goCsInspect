@@ -11,20 +11,23 @@ import (
 
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/common/types"
-	"github.com/volodymyrzuyev/goCsInspect/config"
 )
 
-type Detailer struct {
+type Detailer interface {
+	DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error)
+}
+
+type detailer struct {
 	allItems *csgo.Csgo
 }
 
-func NewDetailer() *Detailer {
-	languageData, err := parser.Parse(config.EnglishFile)
+func NewDetailer(langugeFile, gameItems string) Detailer {
+	languageData, err := parser.Parse(langugeFile)
 	if err != nil {
 		panic(err)
 	}
 
-	itemData, err := parser.Parse(config.GameItems)
+	itemData, err := parser.Parse(gameItems)
 	if err != nil {
 		panic(err)
 	}
@@ -34,12 +37,12 @@ func NewDetailer() *Detailer {
 		panic(err)
 	}
 
-	return &Detailer{
+	return &detailer{
 		allItems: allItems,
 	}
 }
 
-func (d *Detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
+func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
 	var mods []types.Modification
 
 	for _, proto := range protos {
@@ -72,7 +75,7 @@ func (d *Detailer) detailModificationsStickers(protos []*protobuf.CEconItemPrevi
 	return mods, nil
 }
 
-func (d *Detailer) detailModificationsChains(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
+func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
 	var mods []types.Modification
 
 	for _, proto := range protos {
@@ -139,7 +142,7 @@ const (
 	defaultPaintKitIndex = 0
 )
 
-func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
+func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
 	item := &types.Item{
 		ItemID:         proto.GetItemid(),
 		DefIndex:       proto.GetDefindex(),

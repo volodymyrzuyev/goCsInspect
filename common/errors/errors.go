@@ -3,11 +3,15 @@ package errors
 import "errors"
 
 // Client
-
 var (
 	ErrClientUnableToConnect = errors.New("client unable to connect")
 	ErrClientTimeout         = errors.New("client timeout when fetching skin")
-	ErrClientUnavaliable     = errors.New("client is unavaliable now")
+	ErrClientUnavailable     = errors.New("client is unavailable now")
+)
+
+// clientManager
+var (
+	ErrNoAvailableClients = errors.New("no available clients")
 )
 
 // Credentials
@@ -20,11 +24,10 @@ var (
 // inspectParams
 var (
 	ErrInvalidParameters  = errors.New("parameters A and D and (M or S) must be provided")
-	ErrInvalidInspectLink = errors.New("pas not able to parse inspectLink")
+	ErrInvalidInspectLink = errors.New("was not able to parse inspectLink")
 )
 
 // detailer
-
 var (
 	ErrUnknownProtoValue       = errors.New("item proto has unknown properties")
 	ErrUnknownRarity           = errors.Join(ErrUnknownProtoValue, errors.New("unknown rarity"))

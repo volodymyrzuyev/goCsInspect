@@ -16,7 +16,24 @@ var (
 	IsDebug       = true
 	DebugLocation = "./debug/logs"
 	DebugLogger   = getDebugLogger()
+
+	DefaultClientConfig = ClientConfig{
+		RequestCooldown: RequestCooldown,
+		TimeOutDuration: TimeOutDuration,
+		IsDebug:         IsDebug,
+		DebugLocation:   DebugLocation,
+		DebugLogger:     DebugLogger,
+	}
 )
+
+type ClientConfig struct {
+	RequestCooldown time.Duration
+	TimeOutDuration time.Duration
+
+	IsDebug       bool
+	DebugLocation string
+	DebugLogger   *slog.Logger
+}
 
 func getDebugLogger() *slog.Logger {
 	logFile, err := os.OpenFile(DebugLocation, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
