@@ -30,12 +30,12 @@ type ClientManager struct {
 	detailer     detailer.Detailer
 }
 
-func NewClientManager(detailer detailer.Detailer, clientConfi config.ClientConfig) *ClientManager {
+func NewClientManager(detailer detailer.Detailer, clientConfig config.ClientConfig) *ClientManager {
 	return &ClientManager{
-		gcHandler:  gcHandler.NewGcHandler(),
+		gcHandler:  gcHandler.NewGcHandler(clientConfig.TimeOutDuration),
 		clientList: &clientList{clients: make([]client.InspectClient, 0)},
 
-		clientConfig: clientConfi,
+		clientConfig: clientConfig,
 		detailer:     detailer,
 	}
 }

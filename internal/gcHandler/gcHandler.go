@@ -9,7 +9,6 @@ import (
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/config"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -22,12 +21,16 @@ type gcHandler struct {
 	mu               sync.Mutex
 	responses        map[uint64]*csProto.CEconItemPreviewDataBlock
 	pendingResponses map[uint64]chan *csProto.CEconItemPreviewDataBlock
+
+	timeOutDuration time.Duration
 }
 
-func NewGcHandler() GcHandler {
+func NewGcHandler(timeOutDuration time.Duration) GcHandler {
 	return &gcHandler{
 		pendingResponses: make(map[uint64]chan *csProto.CEconItemPreviewDataBlock),
 		responses:        make(map[uint64]*csProto.CEconItemPreviewDataBlock),
+
+		timeOutDuration: timeOutDuration,
 	}
 }
 
@@ -106,7 +109,7 @@ func (r *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlo
 	case response := <-ch:
 		slog.Debug("Get in-flight response", "item_id", itemId)
 		return response, nil
-	case <-time.After(config.TimeOutDuration):
+	case <-time.After(r.timeOutDuration):
 		// if no response in allowed time, clean up the chan map
 		r.mu.Lock()
 		if chP, ok := r.pendingResponses[itemId]; ok && chP == ch {
