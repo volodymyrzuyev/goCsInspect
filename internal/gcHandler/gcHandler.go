@@ -36,6 +36,26 @@ const (
 	inspectResponseProtoID = 9157
 )
 
+func (r *gcHandler) storeResponse(itemInfo *csProto.CEconItemPreviewDataBlock) {
+	itemId := itemInfo.GetItemid()
+
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	// is waiting for response, send it down chanel
+	if ch, ok := r.pendingResponses[itemId]; ok {
+		ch <- itemInfo
+		close(ch)
+		delete(r.pendingResponses, itemId)
+		slog.Debug("Sending skin fetching response to in-flight recipient",
+			"item_id", itemId)
+	} else {
+		// update response map
+		slog.Debug("Storing response for later reply", "item_id", itemId)
+		r.responses[itemId] = itemInfo
+	}
+}
+
 func (r *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	// vertify right type of packet
 	if packet.AppId != csAppID || packet.MsgType != inspectResponseProtoID {
@@ -55,26 +75,11 @@ func (r *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 		return
 	}
 
-	itemId := msg.Iteminfo.GetItemid()
 	slog.Debug("Got skin fetching response",
 		"packet_AppId", packet.AppId,
-		"packet_MsgType", packet.MsgType, "item_id", itemId)
+		"packet_MsgType", packet.MsgType, "item_id", msg.Iteminfo.GetItemid())
 
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	// is waiting for response, send it down chanel
-	if ch, ok := r.pendingResponses[itemId]; ok {
-		ch <- msg.Iteminfo
-		close(ch)
-		delete(r.pendingResponses, itemId)
-		slog.Debug("Sending skin fetching response to in-flight recipient",
-			"item_id", itemId)
-	} else {
-		// update response map
-		slog.Debug("Storing response for later reply", "item_id", itemId)
-		r.responses[itemId] = msg.Iteminfo
-	}
+	r.storeResponse(msg.Iteminfo)
 }
 
 func (r *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlock, error) {
@@ -99,6 +104,7 @@ func (r *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlo
 	// wait for response, or timout
 	select {
 	case response := <-ch:
+		slog.Debug("Get in-flight response", "item_id", itemId)
 		return response, nil
 	case <-time.After(config.TimeOutDuration):
 		// if no response in allowed time, clean up the chan map
