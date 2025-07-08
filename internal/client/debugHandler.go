@@ -32,12 +32,18 @@ func newDebug(username string, eventLogger, packetLogger *slog.Logger) *debug {
 func (d *debug) HandlePacket(packet *protocol.Packet) {
 	d.packetId++
 	text := packet.String() + "\n\n" + hex.Dump(packet.Data)
-	d.packetLogger.Debug("Got packet", "username", d.username, "packet_id", d.packetId, "packet_EMsg", packet.EMsg, "data", text)
+	d.packetLogger.Debug("Got packet",
+		"username", d.username,
+		"packet_id", d.packetId,
+		"packet_EMsg", packet.EMsg,
+		"data", text)
 }
 
 func (d *debug) HandleEvent(event any) {
 	d.eventId++
-	d.eventLogger.Debug("Got event", "username", d.username, "event_id", d.eventId, "event_name", name(event), "data", []byte(spew.Sdump(event)))
+	d.eventLogger.Debug("Got event",
+		"username", d.username, "event_id", d.eventId, "event_name",
+		name(event), "data", []byte(spew.Sdump(event)))
 }
 
 func name(obj any) string {

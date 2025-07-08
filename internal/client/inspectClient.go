@@ -10,7 +10,6 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 
-	"github.com/volodymyrzuyev/goCsInspect/common/consts"
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
@@ -21,8 +20,8 @@ type InspectClient interface {
 	IsLoggedIn() bool
 	IsAvaliable() bool
 
-	LogIn(credentials types.Credentials) error
 	LogOff()
+	LogIn(credentials types.Credentials) error
 
 	InspectItem(params types.InspectParameters) (*protobuf.CEconItemPreviewDataBlock, error)
 }
@@ -45,36 +44,12 @@ func NewInspectClient(gcHandler gcHandler.GcHandler) InspectClient {
 	}
 }
 
-func (c *inspectClient) LogIn(creds types.Credentials) error {
-	slog.Debug("Login attempt", "username", creds.Username)
-
-	logOnDetails, err := creds.GenerateLogOnDetails()
-	if err != nil {
-		slog.Error("Invalid credentials", "username", creds.Username, "error", err.Error())
-		return err
-	}
-
-	logIn := make(chan error)
-
-	go runClientLoop(c.client, logOnDetails, c.exitCh, logIn)
-
-	c.username = logOnDetails.Username
-
-	select {
-	case err := <-logIn:
-		if err != nil {
-			slog.Error("Client got error during connection", "username", c.username, "error", err.Error())
-			return err
-		}
-		slog.Info("Client login complete", "username", c.username)
-		c.client.GC.RegisterPacketHandler(c.gcHandler)
-		c.lastUsed = time.Now().Add(-config.RequestCooldown * 2)
-		return nil
-	case <-time.After(config.TimeOutDuration):
-		c.LogOff()
-		slog.Error("Client timed out during login", "username", c.username)
-		return errors.ErrClientUnableToConnect
-	}
+func (c *inspectClient) IsLoggedIn() bool {
+	return c.client != nil && c.client.Connected()
+}
+func (c *inspectClient) IsAvaliable() bool {
+	willBeAvaliable := c.lastUsed.Add(config.RequestCooldown)
+	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
 }
 
 func (c *inspectClient) LogOff() {
@@ -86,34 +61,7 @@ func (c *inspectClient) LogOff() {
 	c.exitCh <- true
 }
 
-func (c *inspectClient) IsLoggedIn() bool {
-	return c.client != nil && c.client.Connected()
-}
-func (c *inspectClient) IsAvaliable() bool {
-	willBeAvaliable := c.lastUsed.Add(config.RequestCooldown)
-	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
-}
-
-func (c *inspectClient) InspectItem(params types.InspectParameters) (*protobuf.CEconItemPreviewDataBlock, error) {
-	slog.Debug("Client requested to inspect skin", "username", c.username, "lastUsed", c.lastUsed.Format(time.TimeOnly), "inspect_params", fmt.Sprintf("%+v", params))
-	if !c.IsAvaliable() {
-		slog.Error("Client not avaliable to inspect skin", "username", c.username)
-		return nil, errors.ErrClientUnavaliable
-	}
-
-	requestProto, err := params.GenerateGcRequestProto()
-	if err != nil {
-		slog.Error("Client unable to parse inspect link", "username", c.username, "inspect_params", params)
-		return nil, err
-	}
-
-	proto := gamecoordinator.NewGCMsgProtobuf(consts.CsAppID, uint32(consts.InspectRequestProtoID), requestProto)
-	slog.Debug("Sending inspect request", "username", c.username, "inspect_params", fmt.Sprintf("%+v", params))
-	c.client.GC.Write(proto)
-	c.lastUsed = time.Now()
-
-	return c.gcHandler.GetResponse(params.A)
-}
+const csAppID = 730
 
 func runClientLoop(client *steam.Client, creds steam.LogOnDetails, exitCh <-chan bool, loginCh chan<- error) {
 	auth := newAuth(client, &creds, loginCh)
@@ -132,7 +80,8 @@ func runClientLoop(client *steam.Client, creds steam.LogOnDetails, exitCh <-chan
 			return
 		case event, ok := <-client.Events():
 			if !ok {
-				slog.Debug("Client channel disconnected, leaving client loop", "username", auth.details.Username)
+				slog.Debug("Client channel disconnected, leaving client loop",
+					"username", auth.details.Username)
 				return
 			}
 
@@ -144,12 +93,78 @@ func runClientLoop(client *steam.Client, creds steam.LogOnDetails, exitCh <-chan
 
 			switch e := event.(type) {
 			case error:
-				slog.Warn("Steam client event error", "username", auth.details.Username, "error", e.Error())
+				slog.Warn("Steam client event error",
+					"username", auth.details.Username, "error", e.Error())
+
 			case *steam.LoggedOnEvent:
 				client.Social.SetPersonaState(steamlang.EPersonaState_Online)
-				client.GC.SetGamesPlayed(consts.CsAppID)
+				client.GC.SetGamesPlayed(csAppID)
 			}
 		}
 	}
 
+}
+
+func (c *inspectClient) LogIn(creds types.Credentials) error {
+	slog.Debug("Login attempt", "username", creds.Username)
+
+	logOnDetails, err := creds.GenerateLogOnDetails()
+	if err != nil {
+		slog.Error("Invalid credentials",
+			"username", creds.Username, "error", err.Error())
+		return err
+	}
+
+	logIn := make(chan error)
+
+	go runClientLoop(c.client, logOnDetails, c.exitCh, logIn)
+
+	c.username = logOnDetails.Username
+
+	select {
+	case err := <-logIn:
+		if err != nil {
+			slog.Error("Client got error during connection",
+				"username", c.username, "error", err.Error())
+			return err
+		}
+		slog.Info("Client login complete", "username", c.username)
+		c.client.GC.RegisterPacketHandler(c.gcHandler)
+		c.lastUsed = time.Now().Add(-config.RequestCooldown * 2)
+		return nil
+	case <-time.After(config.TimeOutDuration):
+		c.LogOff()
+		slog.Error("Client timed out during login", "username", c.username)
+		return errors.ErrClientUnableToConnect
+	}
+}
+
+const inspectRequestProtoID = 9156
+
+func (c *inspectClient) InspectItem(params types.InspectParameters) (*protobuf.CEconItemPreviewDataBlock, error) {
+	slog.Debug("Client requested to inspect skin",
+		"username", c.username,
+		"lastUsed", c.lastUsed.Format(time.TimeOnly),
+		"inspect_params", fmt.Sprintf("%+v", params))
+
+	if !c.IsAvaliable() {
+		slog.Error("Client not avaliable to inspect skin",
+			"username", c.username)
+		return nil, errors.ErrClientUnavaliable
+	}
+
+	requestProto, err := params.GenerateGcRequestProto()
+	if err != nil {
+		slog.Error("Client unable to parse inspect link",
+			"username", c.username, "inspect_params", params)
+		return nil, err
+	}
+
+	proto := gamecoordinator.NewGCMsgProtobuf(csAppID, uint32(inspectRequestProtoID), requestProto)
+	slog.Debug("Sending inspect request",
+		"username", c.username, "inspect_params", fmt.Sprintf("%+v", params))
+	c.client.GC.Write(proto)
+	c.lastUsed = time.Now()
+
+	return c.gcHandler.GetResponse(params.A)
 }

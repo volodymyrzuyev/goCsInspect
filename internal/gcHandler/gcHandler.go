@@ -8,7 +8,6 @@ import (
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
-	"github.com/volodymyrzuyev/goCsInspect/common/consts"
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"google.golang.org/protobuf/proto"
@@ -32,10 +31,17 @@ func NewGcHandler() GcHandler {
 	}
 }
 
+const (
+	csAppID                = 730
+	inspectResponseProtoID = 9157
+)
+
 func (r *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	// vertify right type of packet
-	if packet.AppId != consts.CsAppID || packet.MsgType != consts.InspectResponseProtoID {
-		slog.Debug("Got non CS inpsect packet", "packet_AppId", packet.AppId, "packet_MsgType", packet.MsgType, "body", packet.Body)
+	if packet.AppId != csAppID || packet.MsgType != inspectResponseProtoID {
+		slog.Debug("Got non CS inpsect packet",
+			"packet_AppId", packet.AppId, "packet_MsgType",
+			packet.MsgType, "body", packet.Body)
 		return
 	}
 
@@ -43,12 +49,16 @@ func (r *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	var msg protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockResponse
 	err := proto.Unmarshal(packet.Body, &msg)
 	if err != nil {
-		slog.Debug("Error unmarshaling proto", "packet_AppId", packet.AppId, "packet_MsgType", packet.MsgType, "body", packet.Body, "error", err.Error())
+		slog.Debug("Error unmarshaling proto",
+			"packet_AppId", packet.AppId, "packet_MsgType", packet.MsgType,
+			"body", packet.Body, "error", err.Error())
 		return
 	}
 
 	itemId := msg.Iteminfo.GetItemid()
-	slog.Debug("Got skin fetching response", "packet_AppId", packet.AppId, "packet_MsgType", packet.MsgType, "item_id", itemId)
+	slog.Debug("Got skin fetching response",
+		"packet_AppId", packet.AppId,
+		"packet_MsgType", packet.MsgType, "item_id", itemId)
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -58,7 +68,8 @@ func (r *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 		ch <- msg.Iteminfo
 		close(ch)
 		delete(r.pendingResponses, itemId)
-		slog.Debug("Sending skin fetching response to in-flight recipient", "item_id", itemId)
+		slog.Debug("Sending skin fetching response to in-flight recipient",
+			"item_id", itemId)
 	} else {
 		// update response map
 		slog.Debug("Storing response for later reply", "item_id", itemId)
@@ -73,7 +84,8 @@ func (r *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlo
 	if response, ok := r.responses[itemId]; ok {
 		delete(r.responses, itemId)
 		r.mu.Unlock()
-		slog.Debug("Request for fetched skin details already stored", "item_id", itemId)
+		slog.Debug("Request for fetched skin details already stored",
+			"item_id", itemId)
 		return response, nil
 	}
 

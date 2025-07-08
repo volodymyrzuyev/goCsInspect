@@ -9,7 +9,6 @@ import (
 	"github.com/volodymyrzuyev/go-csgo-item-parser/csgo"
 	"github.com/volodymyrzuyev/go-csgo-item-parser/parser"
 
-	"github.com/volodymyrzuyev/goCsInspect/common/consts"
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
@@ -38,10 +37,6 @@ func NewDetailer() *Detailer {
 	return &Detailer{
 		allItems: allItems,
 	}
-}
-
-func (d *Detailer) stickerInspectItem(item *types.Item, proto *protobuf.CEconItemPreviewDataBlock) error {
-	return nil
 }
 
 func (d *Detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
@@ -133,6 +128,15 @@ func getWearName(float float64) string {
 const (
 	minDefaultFloat = "0.06"
 	maxDefaultFloat = "0.8"
+
+	stickerDefIndex = 1209
+	pathDefIndex    = 4609
+	sprayDefIndex   = 1348
+	chainDefIndex   = 1355
+	musicDefIndex   = 1314
+
+	defaultItemQuality   = 4
+	defaultPaintKitIndex = 0
 )
 
 func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
@@ -192,23 +196,23 @@ func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*typ
 			item.RarityName = rarity.GeneralRarityName
 
 			switch itemType.Index {
-			case consts.StickerDefIndex:
+			case stickerDefIndex:
 				item.FullItemName = item.Stickers[0].Name
 				item.ItemName = d.allItems.Stickerkits[int(item.Stickers[0].StickerId)].Name
 
-			case consts.SprayDefIndex:
+			case sprayDefIndex:
 				item.FullItemName = item.Stickers[0].Name
 				item.ItemName = d.allItems.Spraykits[int(item.Stickers[0].StickerId)].Name
 
-			case consts.PathDefIndex:
+			case pathDefIndex:
 				item.FullItemName = item.Stickers[0].Name
 				item.ItemName = d.allItems.Patchkits[int(item.Stickers[0].StickerId)].Name
 
-			case consts.ChainDefIndex:
+			case chainDefIndex:
 				item.FullItemName = item.Keychains[0].Name
 				item.ItemName = d.allItems.Keychains[int(item.Keychains[0].StickerId)].Name
 
-			case consts.MusicDefIndex:
+			case musicDefIndex:
 				music, ok := d.allItems.Musickits[int(proto.GetMusicindex())]
 				if !ok {
 					return nil, errors.ErrUnknownMusicIndex
@@ -217,7 +221,8 @@ func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*typ
 				item.FullItemName = fmt.Sprintf("%s | %s", item.WeaponType, item.ItemName)
 
 			default:
-				slog.Debug("Unexpected def_index, details won't be populated", "def_index", item.DefIndex)
+				slog.Debug("Unexpected def_index, details won't be populated",
+					"def_index", item.DefIndex)
 
 			}
 
@@ -228,14 +233,15 @@ func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*typ
 			item.FullItemName = itemType.Name
 
 		default:
-			slog.Debug("Unexpected def_index, details won't be populated", "def_index", item.DefIndex)
+			slog.Debug("Unexpected def_index, details won't be populated",
+				"def_index", item.DefIndex)
 
 		}
 	} else {
 		slog.Error("Unknown def_index", "def_index", item.DefIndex)
 		return nil, errors.ErrUnknownDefIndex
 	}
-	if item.PaintIndex != consts.DefaultPaintKitIndex {
+	if item.PaintIndex != defaultPaintKitIndex {
 		paintKit, ok := d.allItems.Paintkits[int(item.PaintIndex)]
 		if !ok {
 			return nil, errors.ErrUnknownPaintIndex
@@ -249,12 +255,13 @@ func (d *Detailer) InspectItems(proto *protobuf.CEconItemPreviewDataBlock) (*typ
 
 	quality, ok := d.allItems.Qualities[int(item.Quality)]
 	if !ok {
-		slog.Error("Quality not found", "item_id", item.ItemID, "quality_index", item.Quality)
+		slog.Error("Quality not found",
+			"item_id", item.ItemID, "quality_index", item.Quality)
 		return nil, errors.ErrUnknownRarity
 	}
 
 	item.QualityName = quality.Name
-	if item.Quality != consts.DefaultItemQuality {
+	if item.Quality != defaultItemQuality {
 		item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)
 	}
 
