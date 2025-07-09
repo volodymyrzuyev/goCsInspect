@@ -45,12 +45,6 @@ github.com/shopspring/decimal v1.3.1 h1:2Usl1nmF/WZucqkFZhnfFYxxxu8LG21F6nPQBE5g
 github.com/shopspring/decimal v1.3.1/go.mod h1:DKyhrW/HYNuLGql+MJL6WCR6knT2jwCFRcu2hWCYk4o=
 github.com/stretchr/testify v1.10.0 h1:Xv5erBjTwe/5IxqUQTdXv5kgmIvbHo3QQyRwhJsOfJA=
 github.com/stretchr/testify v1.10.0/go.mod h1:r2ic/lqez/lEtzL7wO/rwa5dbSLXVDPFyf8C91i36aY=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250706024121-18f0666b7dd1 h1:qRMbQ40I/Rdx0qKSD8WRLjvhLbZ1BiLcI/hbTIC4ce4=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250706024121-18f0666b7dd1/go.mod h1:dHKAeBdsVJVulkPAtgI+VHNKXIUspdLn7623oTyVzSk=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250706053040-0c14c083709b h1:kiDXM/Wc8ZvQB56GLWyjaPt0ts+5uaIY4OfJuu6CF9o=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250706053040-0c14c083709b/go.mod h1:dHKAeBdsVJVulkPAtgI+VHNKXIUspdLn7623oTyVzSk=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707181251-b4231aa9741d h1:dHZIW19PTNe/KT6gGrawxaj3o01UFwvlaUNWyNd0wW0=
-github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707181251-b4231aa9741d/go.mod h1:dHKAeBdsVJVulkPAtgI+VHNKXIUspdLn7623oTyVzSk=
 github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707191542-c346d83e533c h1:C29f8lFn1SNhKVOAQtFBqoJRr6XOp73UDxIVmUGuebU=
 github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707191542-c346d83e533c/go.mod h1:dHKAeBdsVJVulkPAtgI+VHNKXIUspdLn7623oTyVzSk=
 github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e h1:JVG44RsyaB9T2KIHavMF/ppJZNG9ZpyihvCd0w101no=
@@ -99,5 +93,7 @@ golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8T
 google.golang.org/protobuf v1.26.0-rc.1/go.mod h1:jlhhOSvTdKEhbULTjvd4ARK9grFBp09yW+WbY/TyQbw=
 google.golang.org/protobuf v1.30.0 h1:kPPoIgf3TsEvrm0PFe15JQ+570QVxYzEvvHqChK+cng=
 google.golang.org/protobuf v1.30.0/go.mod h1:HV8QOd/L58Z+nl8r43ehVNZIU/HEI6OcFqwMG9pJV4I=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 h1:yhCVgyC4o1eVCa2tZl7eS0r+SDo693bJlVdllGtEeKM=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
