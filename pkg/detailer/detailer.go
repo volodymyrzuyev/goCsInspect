@@ -48,7 +48,7 @@ func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPrevi
 	for _, proto := range protos {
 		mod := getBaseMod(proto)
 
-		stickerSubtype, ok := d.allItems.AllStickerItems[int(mod.StickerId)]
+		stickerSubtype, ok := d.allItems.AllStickerItems[int(mod.Proto.GetStickerId())]
 		if !ok {
 			return nil, errors.ErrUnknownStickerModifier
 		}
@@ -81,7 +81,7 @@ func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreview
 	for _, proto := range protos {
 		mod := getBaseMod(proto)
 
-		chain, ok := d.allItems.Keychains[int(mod.StickerId)]
+		chain, ok := d.allItems.Keychains[int(mod.Proto.GetStickerId())]
 		if !ok {
 			return nil, errors.ErrUnknownStickerModifier
 		}
@@ -96,14 +96,7 @@ func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreview
 
 func getBaseMod(proto *protobuf.CEconItemPreviewDataBlock_Sticker) types.Modification {
 	return types.Modification{
-		Slot:      proto.GetSlot(),
-		StickerId: proto.GetStickerId(),
-		Wear:      proto.GetWear(),
-		Rotation:  proto.GetRotation(),
-		OffsetX:   proto.GetOffsetX(),
-		OffsetY:   proto.GetOffsetY(),
-		OffsetZ:   proto.GetOffsetZ(),
-		Pattern:   proto.GetPattern(),
+		Proto: proto,
 	}
 }
 
@@ -144,17 +137,8 @@ const (
 
 func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
 	item := &types.Item{
-		ItemID:         proto.GetItemid(),
-		DefIndex:       proto.GetDefindex(),
-		PaintIndex:     proto.GetPaintindex(),
-		Rarity:         proto.GetRarity(),
-		Quality:        proto.GetQuality(),
-		PaintWear:      proto.GetPaintwear(),
-		PaintSeed:      proto.GetPaintseed(),
-		KillEaterValue: proto.GetKilleatervalue(),
-		CustomName:     proto.GetCustomname(),
-		Origin:         proto.GetOrigin(),
-		FloatValue:     float64(math.Float32frombits(proto.GetPaintwear())),
+		Proto:      proto,
+		FloatValue: float64(math.Float32frombits(proto.GetPaintwear())),
 	}
 
 	var err error
@@ -172,13 +156,13 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 
 	item.WearName = getWearName(item.FloatValue)
 
-	rarity, ok := d.allItems.Rarities[int(item.Rarity)]
+	rarity, ok := d.allItems.Rarities[int(item.Proto.GetRarity())]
 	if !ok {
-		slog.Error("Rarity not found", "item_id", item.ItemID, "rarity_index", item.Rarity)
+		slog.Error("Rarity not found", "item_id", item.Proto.GetItemid(), "rarity_index", item.Proto.GetRarity())
 		return nil, errors.ErrUnknownRarity
 	}
 
-	if defIndex, ok := d.allItems.DefIndecies[int(item.DefIndex)]; ok {
+	if defIndex, ok := d.allItems.DefIndecies[int(item.Proto.GetDefindex())]; ok {
 		switch itemType := defIndex.(type) {
 		case *csgo.Weapon:
 			item.MaxFloat = maxDefaultFloat
@@ -201,19 +185,19 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 			switch itemType.Index {
 			case stickerDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Stickerkits[int(item.Stickers[0].StickerId)].Name
+				item.ItemName = d.allItems.Stickerkits[int(item.Stickers[0].Proto.GetStickerId())].Name
 
 			case sprayDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Spraykits[int(item.Stickers[0].StickerId)].Name
+				item.ItemName = d.allItems.Spraykits[int(item.Stickers[0].Proto.GetStickerId())].Name
 
 			case pathDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Patchkits[int(item.Stickers[0].StickerId)].Name
+				item.ItemName = d.allItems.Patchkits[int(item.Stickers[0].Proto.GetStickerId())].Name
 
 			case chainDefIndex:
 				item.FullItemName = item.Keychains[0].Name
-				item.ItemName = d.allItems.Keychains[int(item.Keychains[0].StickerId)].Name
+				item.ItemName = d.allItems.Keychains[int(item.Keychains[0].Proto.GetStickerId())].Name
 
 			case musicDefIndex:
 				music, ok := d.allItems.Musickits[int(proto.GetMusicindex())]
@@ -225,7 +209,7 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 
 			default:
 				slog.Debug("Unexpected def_index, details won't be populated",
-					"def_index", item.DefIndex)
+					"def_index", item.Proto.GetDefindex())
 
 			}
 
@@ -237,15 +221,15 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 
 		default:
 			slog.Debug("Unexpected def_index, details won't be populated",
-				"def_index", item.DefIndex)
+				"def_index", item.Proto.GetDefindex())
 
 		}
 	} else {
-		slog.Error("Unknown def_index", "def_index", item.DefIndex)
+		slog.Error("Unknown def_index", "def_index", item.Proto.GetDefindex())
 		return nil, errors.ErrUnknownDefIndex
 	}
-	if item.PaintIndex != defaultPaintKitIndex {
-		paintKit, ok := d.allItems.Paintkits[int(item.PaintIndex)]
+	if item.Proto.GetPaintindex() != defaultPaintKitIndex {
+		paintKit, ok := d.allItems.Paintkits[int(item.Proto.GetPaintindex())]
 		if !ok {
 			return nil, errors.ErrUnknownPaintIndex
 		}
@@ -256,15 +240,15 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 		item.FullItemName = fmt.Sprintf("%s | %s (%s)", item.WeaponType, item.ItemName, item.WearName)
 	}
 
-	quality, ok := d.allItems.Qualities[int(item.Quality)]
+	quality, ok := d.allItems.Qualities[int(item.Proto.GetQuality())]
 	if !ok {
 		slog.Error("Quality not found",
-			"item_id", item.ItemID, "quality_index", item.Quality)
+			"item_id", item.Proto.GetItemid(), "quality_index", item.Proto.GetQuality())
 		return nil, errors.ErrUnknownRarity
 	}
 
 	item.QualityName = quality.Name
-	if item.Quality != defaultItemQuality {
+	if item.Proto.GetQuality() != defaultItemQuality {
 		item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)
 	}
 
