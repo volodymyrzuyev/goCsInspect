@@ -2,3 +2,5 @@ cmd/test/
 debug/
 bin/
 game_files/
+pkg/detailer/detailerDataNew_test.go
+.env

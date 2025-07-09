@@ -7,6 +7,7 @@ require (
 	github.com/bbqtd/go-steam-authenticator v0.0.0-20160724194112-c5890fde0935
 	github.com/charmbracelet/log v0.4.2
 	github.com/davecgh/go-spew v1.1.1
+	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.10.0
 	github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707191542-c346d83e533c
 	google.golang.org/protobuf v1.30.0
