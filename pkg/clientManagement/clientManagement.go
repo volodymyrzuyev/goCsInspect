@@ -4,11 +4,12 @@ import (
 	"log/slog"
 
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 )
 
 type clientList struct {
@@ -56,7 +57,7 @@ func (c *ClientManager) AddClient(credentials types.Credentials) error {
 	return nil
 }
 
-func (c *ClientManager) InspectSkin(params types.InspectParameters) (*types.Item, error) {
+func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item, error) {
 	var curClient client.InspectClient
 	for range len(c.clientList.clients) {
 		curClient = c.clientList.getNextClient()

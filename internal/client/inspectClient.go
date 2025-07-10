@@ -11,9 +11,9 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 )
 
 type InspectClient interface {

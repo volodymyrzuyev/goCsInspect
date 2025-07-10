@@ -2,7 +2,7 @@ package detailer
 
 import (
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 
 func getTestCases() map[string]protoTestCase {
@@ -60,7 +60,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Skin StatTrak Stickers"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.0345672890543938,
 			MinFloat:     "0",
@@ -71,32 +71,32 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Covert",
 			WearName:     "Factory New",
 			FullItemName: "StatTrak™ AWP | Printstream (Factory New)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "stockh2021_team_evl_holo",
 					Material: "Holo",
 					Name:     "Sticker | Evil Geniuses (Holo) | Stockholm 2021",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[1],
 					CodeName: "rio2022_team_mouz_gold",
 					Material: "Gold",
 					Name:     "Sticker | MOUZ (Gold) | Rio 2022",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[2],
 					CodeName: "cph2024_team_cplx_holo",
 					Material: "Holo",
 					Name:     "Sticker | Complexity Gaming (Holo) | Copenhagen 2024",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[3],
 					CodeName: "paris2023_team_cplx_holo",
 					Material: "Holo",
 					Name:     "Sticker | Complexity Gaming (Holo) | Paris 2023",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[4],
 					CodeName: "cph2024_team_gl_holo",
 					Material: "Holo",
@@ -125,7 +125,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Knife StatTrack"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.0207230467349291,
 			MinFloat:     "0",
@@ -160,7 +160,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Paper"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "BIG | Krakow 2017",
@@ -169,8 +169,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "High Grade",
 			WearName:     "",
 			FullItemName: "Sticker | BIG | Krakow 2017",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "krakow2017_team_big",
 					Material: "Paper",
@@ -201,7 +201,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Lenticular"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Freeze (Lenticular)",
@@ -210,8 +210,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Extraordinary",
 			WearName:     "",
 			FullItemName: "Sticker | Freeze (Lenticular)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "csgo10_freeze_lenticular",
 					Material: "Lenticular",
@@ -236,7 +236,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Pin"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Alyx Pin",
@@ -265,7 +265,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Knife Vanila"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.36543238162994385,
 			MinFloat:     "0.06",
@@ -297,7 +297,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Knife Vanila StatTrak"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.1349254846572876,
 			MinFloat:     "0.06",
@@ -331,7 +331,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Gold"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "somebody (Gold) | Shanghai 2024",
@@ -340,8 +340,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Extraordinary",
 			WearName:     "",
 			FullItemName: "Sticker | somebody (Gold) | Shanghai 2024",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "sha2024_signature_somebody_4_gold",
 					Material: "Gold",
@@ -372,7 +372,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Foil"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Boom (Foil)",
@@ -381,8 +381,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Exotic",
 			WearName:     "",
 			FullItemName: "Sticker | Boom (Foil)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "slid3_boom_foil",
 					Material: "Foil",
@@ -407,7 +407,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Agent"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Sir Bloody Miami Darryl | The Professionals",
@@ -441,7 +441,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Agent Patch"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Sir Bloody Miami Darryl | The Professionals",
@@ -450,8 +450,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Master",
 			WearName:     "",
 			FullItemName: "Sir Bloody Miami Darryl | The Professionals",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "patch_wildfire",
 					Name:     "Patch | Wildfire",
@@ -482,7 +482,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Keychain"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Baby Karat T",
@@ -491,8 +491,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Extraordinary",
 			WearName:     "",
 			FullItemName: "Charm | Baby Karat T",
-			Keychains: []types.Modification{
-				types.Modification{
+			Keychains: []item.Modification{
+				item.Modification{
 					Proto:    input.Keychains[0],
 					CodeName: "kc_wpn_tknife_gold",
 					Name:     "Charm | Baby Karat T",
@@ -518,7 +518,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Skin"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.045938506722450256,
 			MinFloat:     "0",
@@ -579,7 +579,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Skin Stickers Keychain"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.05140004679560661,
 			MinFloat:     "0",
@@ -590,34 +590,34 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Covert",
 			WearName:     "Factory New",
 			FullItemName: "AK-47 | Vulcan (Factory New)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "eslcologne2015_team_clg_foil",
 					Material: "Foil",
 					Name:     "Sticker | Counter Logic Gaming (Foil) | Cologne 2015",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[1],
 					CodeName: "cologne2016_team_liq_holo",
 					Material: "Holo",
 					Name:     "Sticker | Team Liquid (Holo) | Cologne 2016",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[2],
 					CodeName: "cologne2014_epsilonesports",
 					Material: "Paper",
 					Name:     "Sticker | Epsilon eSports | Cologne 2014",
 				},
-				types.Modification{
+				item.Modification{
 					Proto:    input.Stickers[3],
 					CodeName: "drugwarveteran",
 					Material: "Paper",
 					Name:     "Sticker | Drug War Veteran",
 				},
 			},
-			Keychains: []types.Modification{
-				types.Modification{
+			Keychains: []item.Modification{
+				item.Modification{
 					Proto:    input.Keychains[0],
 					CodeName: "kc_missinglink_ava",
 					Name:     "Charm | Lil' Ava",
@@ -643,7 +643,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Gloves"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.06240295618772507,
 			MinFloat:     "0.06",
@@ -678,7 +678,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Glitter"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Lotus (Glitter)",
@@ -687,8 +687,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Remarkable",
 			WearName:     "",
 			FullItemName: "Sticker | Lotus (Glitter)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "glitter_lotus",
 					Material: "Glitter",
@@ -719,7 +719,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Patch"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Elder God",
@@ -728,8 +728,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Exotic",
 			WearName:     "",
 			FullItemName: "Patch | Elder God",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "patch_op11_cthulhu",
 					Name:     "Patch | Elder God",
@@ -757,7 +757,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Skin StatTrak"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.045039694756269455,
 			MinFloat:     "0",
@@ -788,7 +788,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Knife"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0.03238934278488159,
 			MinFloat:     "0",
@@ -823,7 +823,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Sticker Holo"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Lit (Holo)",
@@ -832,8 +832,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Remarkable",
 			WearName:     "",
 			FullItemName: "Sticker | Lit (Holo)",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "holo_lit",
 					Material: "Holo",
@@ -864,7 +864,7 @@ func getTestCases() map[string]protoTestCase {
 	}
 	tests["Graffiti"] = protoTestCase{
 		input: input,
-		expectedItem: &types.Item{
+		expectedItem: &item.Item{
 			Proto:        input,
 			FloatValue:   0,
 			ItemName:     "Drug War Veteran",
@@ -873,8 +873,8 @@ func getTestCases() map[string]protoTestCase {
 			RarityName:   "Exotic",
 			WearName:     "",
 			FullItemName: "Sealed Graffiti | Drug War Veteran",
-			Stickers: []types.Modification{
-				types.Modification{
+			Stickers: []item.Modification{
+				item.Modification{
 					Proto:    input.Stickers[0],
 					CodeName: "spray_drugwarveteran",
 					Name:     "Sealed Graffiti | Drug War Veteran",

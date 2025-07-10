@@ -10,10 +10,10 @@ import (
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/joho/godotenv"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 )
 
 const fileLocation = "./pkg/detailer/detailerDataNew_test.go"
@@ -116,7 +116,7 @@ func main() {
 	fmt.Fprintf(output, "package detailer\n")
 	fmt.Fprintf(output, "import (\n")
 	fmt.Fprintf(output, "	\"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf\"\n")
-	fmt.Fprintf(output, "	\"github.com/volodymyrzuyev/goCsInspect/common/types\"")
+	fmt.Fprintf(output, "	\"github.com/volodymyrzuyev/goCsInspect/pkg/item\"")
 	fmt.Fprintf(output, ")\n\n")
 	fmt.Fprintf(output, "func getTestCasesNew() map[string]protoTestCase {\n")
 	fmt.Fprintf(output, "	tests := make(map[string]protoTestCase)\n")
@@ -265,7 +265,7 @@ func generateProtoTestCaseReflectV2(name, link, tmLink string, repProto *protobu
 
 	fmt.Fprintf(output, "	tests[\"%s\"] = protoTestCase{\n", name)
 	fmt.Fprintf(output, "		input: input,\n")
-	fmt.Fprintf(output, "		expectedItem: &types.Item{\n")
+	fmt.Fprintf(output, "		expectedItem: &item.Item{\n")
 	fmt.Fprintf(output, "			Proto: input,\n")
 	fmt.Fprintf(output, "		},\n")
 	fmt.Fprintf(output, "		expectedError: nil,\n")

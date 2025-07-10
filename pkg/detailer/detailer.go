@@ -11,11 +11,11 @@ import (
 	"github.com/volodymyrzuyev/go-csgo-item-parser/parser"
 
 	"github.com/volodymyrzuyev/goCsInspect/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 
 type Detailer interface {
-	DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error)
+	DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error)
 }
 
 type detailer struct {
@@ -43,8 +43,8 @@ func NewDetailer(langugeFile, gameItems string) Detailer {
 	}
 }
 
-func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
-	var mods []types.Modification
+func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]item.Modification, error) {
+	var mods []item.Modification
 
 	for _, proto := range protos {
 		mod := getBaseMod(proto)
@@ -76,8 +76,8 @@ func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPrevi
 	return mods, nil
 }
 
-func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]types.Modification, error) {
-	var mods []types.Modification
+func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]item.Modification, error) {
+	var mods []item.Modification
 
 	for _, proto := range protos {
 		mod := getBaseMod(proto)
@@ -95,8 +95,8 @@ func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreview
 	return mods, nil
 }
 
-func getBaseMod(proto *protobuf.CEconItemPreviewDataBlock_Sticker) types.Modification {
-	return types.Modification{
+func getBaseMod(proto *protobuf.CEconItemPreviewDataBlock_Sticker) item.Modification {
+	return item.Modification{
 		Proto: proto,
 	}
 }
@@ -137,8 +137,8 @@ const (
 	statTrackQuality     = 9
 )
 
-func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
-	item := &types.Item{
+func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error) {
+	item := &item.Item{
 		Proto: proto,
 	}
 	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)

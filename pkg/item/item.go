@@ -1,4 +1,4 @@
-package types
+package item
 
 import "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 

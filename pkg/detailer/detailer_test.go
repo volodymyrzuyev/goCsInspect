@@ -6,13 +6,13 @@ import (
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/stretchr/testify/assert"
-	"github.com/volodymyrzuyev/goCsInspect/common/types"
 	"github.com/volodymyrzuyev/goCsInspect/config"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 
 type protoTestCase struct {
 	input         *protobuf.CEconItemPreviewDataBlock
-	expectedItem  *types.Item
+	expectedItem  *item.Item
 	expectedError error
 }
 
