@@ -8,6 +8,7 @@ import (
 func getTestCases() map[string]protoTestCase {
 	tests := make(map[string]protoTestCase)
 	var input *protobuf.CEconItemPreviewDataBlock
+	var expectedItem *item.Item
 	// https://steamcommunity.com/market/listings/730/StatTrak%E2%84%A2%20AWP%20%7C%20Printstream%20%28Factory%20New%29
 	// steam://rungame/730/76561202255233023/+csgo_econ_action_preview%20M659329991369725526A44816452463D640747018096259789
 	// itemid:44816452463 defindex:9 paintindex:1206 rarity:6 quality:9 paintwear:1024300654 paintseed:953 killeaterscoretype:0 killeatervalue:54 stickers:{slot:0 sticker_id:4983 rotation:-90 offset_x:0.022147745 offset_y:0.0029743314} stickers:{slot:3 sticker_id:6016 rotation:-42 offset_x:0.20414282 offset_y:0.07944468} stickers:{slot:3 sticker_id:7284 offset_x:0.07931936 offset_y:0.06176564} stickers:{slot:3 sticker_id:6694 offset_x:0.033233702 offset_y:0.064612746} stickers:{slot:3 sticker_id:7312 offset_x:-0.0047016516 offset_y:0.06625104} inventory:40 origin:8
@@ -58,52 +59,48 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(40),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Skin StatTrak Stickers"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.0345672890543938,
-			MinFloat:     "0",
-			MaxFloat:     "1",
-			ItemName:     "Printstream",
-			QualityName:  "StatTrak™",
-			WeaponType:   "AWP",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "StatTrak™ AWP | Printstream (Factory New)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "stockh2021_team_evl_holo",
-					Material: "Holo",
-					Name:     "Sticker | Evil Geniuses (Holo) | Stockholm 2021",
-				},
-				item.Modification{
-					Proto:    input.Stickers[1],
-					CodeName: "rio2022_team_mouz_gold",
-					Material: "Gold",
-					Name:     "Sticker | MOUZ (Gold) | Rio 2022",
-				},
-				item.Modification{
-					Proto:    input.Stickers[2],
-					CodeName: "cph2024_team_cplx_holo",
-					Material: "Holo",
-					Name:     "Sticker | Complexity Gaming (Holo) | Copenhagen 2024",
-				},
-				item.Modification{
-					Proto:    input.Stickers[3],
-					CodeName: "paris2023_team_cplx_holo",
-					Material: "Holo",
-					Name:     "Sticker | Complexity Gaming (Holo) | Paris 2023",
-				},
-				item.Modification{
-					Proto:    input.Stickers[4],
-					CodeName: "cph2024_team_gl_holo",
-					Material: "Holo",
-					Name:     "Sticker | GamerLegion (Holo) | Copenhagen 2024",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0.0345672890543938,
+		MinFloat:     "0",
+		MaxFloat:     "1",
+		ItemName:     "Printstream",
+		QualityName:  "StatTrak™",
+		WeaponType:   "AWP",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "StatTrak™ AWP | Printstream (Factory New)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "stockh2021_team_evl_holo",
+				Material: "Holo",
+				Name:     "Sticker | Evil Geniuses (Holo) | Stockholm 2021",
+			},
+			{
+				CodeName: "rio2022_team_mouz_gold",
+				Material: "Gold",
+				Name:     "Sticker | MOUZ (Gold) | Rio 2022",
+			},
+			{
+				CodeName: "cph2024_team_cplx_holo",
+				Material: "Holo",
+				Name:     "Sticker | Complexity Gaming (Holo) | Copenhagen 2024",
+			},
+			{
+				CodeName: "paris2023_team_cplx_holo",
+				Material: "Holo",
+				Name:     "Sticker | Complexity Gaming (Holo) | Paris 2023",
+			},
+			{
+				CodeName: "cph2024_team_gl_holo",
+				Material: "Holo",
+				Name:     "Sticker | GamerLegion (Holo) | Copenhagen 2024",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Skin StatTrak Stickers"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -123,20 +120,21 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:          uint32Pointer(90),
 		Origin:             uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.0207230467349291,
+		MinFloat:     "0",
+		MaxFloat:     "0.08",
+		ItemName:     "Gamma Doppler",
+		QualityName:  "★",
+		WeaponType:   "Bayonet",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "★ StatTrak™ Bayonet | Gamma Doppler (Factory New)",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Knife StatTrack"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.0207230467349291,
-			MinFloat:     "0",
-			MaxFloat:     "0.08",
-			ItemName:     "Gamma Doppler",
-			QualityName:  "★",
-			WeaponType:   "Bayonet",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "★ StatTrak™ Bayonet | Gamma Doppler (Factory New)",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -158,26 +156,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(3221225475),
 		Origin:    uint32Pointer(2),
 	}
-	tests["Sticker Paper"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "BIG | Krakow 2017",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "High Grade",
-			WearName:     "",
-			FullItemName: "Sticker | BIG | Krakow 2017",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "krakow2017_team_big",
-					Material: "Paper",
-					Name:     "Sticker | BIG | Krakow 2017",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "BIG | Krakow 2017",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "High Grade",
+		WearName:     "",
+		FullItemName: "Sticker | BIG | Krakow 2017",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "krakow2017_team_big",
+				Material: "Paper",
+				Name:     "Sticker | BIG | Krakow 2017",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Paper"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -199,26 +197,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(3221225482),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Sticker Lenticular"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Freeze (Lenticular)",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "Extraordinary",
-			WearName:     "",
-			FullItemName: "Sticker | Freeze (Lenticular)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "csgo10_freeze_lenticular",
-					Material: "Lenticular",
-					Name:     "Sticker | Freeze (Lenticular)",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Freeze (Lenticular)",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "Extraordinary",
+		WearName:     "",
+		FullItemName: "Sticker | Freeze (Lenticular)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "csgo10_freeze_lenticular",
+				Material: "Lenticular",
+				Name:     "Sticker | Freeze (Lenticular)",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Lenticular"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -234,18 +232,19 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(49),
 		Origin:     uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Alyx Pin",
+		QualityName:  "Unique",
+		WeaponType:   "Pin",
+		RarityName:   "Extraordinary",
+		WearName:     "",
+		FullItemName: "Alyx Pin",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Pin"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Alyx Pin",
-			QualityName:  "Unique",
-			WeaponType:   "Pin",
-			RarityName:   "Extraordinary",
-			WearName:     "",
-			FullItemName: "Alyx Pin",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -263,19 +262,20 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(3221225482),
 		Origin:     uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.36543238162994385,
+		MinFloat:     "0.06",
+		MaxFloat:     "0.8",
+		QualityName:  "★",
+		WeaponType:   "Bayonet",
+		RarityName:   "Covert",
+		WearName:     "Field-Tested",
+		FullItemName: "★ Bayonet",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Knife Vanila"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.36543238162994385,
-			MinFloat:     "0.06",
-			MaxFloat:     "0.8",
-			QualityName:  "★",
-			WeaponType:   "Bayonet",
-			RarityName:   "Covert",
-			WearName:     "Field-Tested",
-			FullItemName: "★ Bayonet",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -295,19 +295,20 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:          uint32Pointer(18),
 		Origin:             uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.1349254846572876,
+		MinFloat:     "0.06",
+		MaxFloat:     "0.8",
+		QualityName:  "★",
+		WeaponType:   "Bayonet",
+		RarityName:   "Covert",
+		WearName:     "Minimal Wear",
+		FullItemName: "★ StatTrak™ Bayonet",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Knife Vanila StatTrak"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.1349254846572876,
-			MinFloat:     "0.06",
-			MaxFloat:     "0.8",
-			QualityName:  "★",
-			WeaponType:   "Bayonet",
-			RarityName:   "Covert",
-			WearName:     "Minimal Wear",
-			FullItemName: "★ StatTrak™ Bayonet",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -329,26 +330,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(7),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Sticker Gold"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "somebody (Gold) | Shanghai 2024",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "Extraordinary",
-			WearName:     "",
-			FullItemName: "Sticker | somebody (Gold) | Shanghai 2024",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "sha2024_signature_somebody_4_gold",
-					Material: "Gold",
-					Name:     "Sticker | somebody (Gold) | Shanghai 2024",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "somebody (Gold) | Shanghai 2024",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "Extraordinary",
+		WearName:     "",
+		FullItemName: "Sticker | somebody (Gold) | Shanghai 2024",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "sha2024_signature_somebody_4_gold",
+				Material: "Gold",
+				Name:     "Sticker | somebody (Gold) | Shanghai 2024",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Gold"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -370,26 +371,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(11),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Sticker Foil"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Boom (Foil)",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "Exotic",
-			WearName:     "",
-			FullItemName: "Sticker | Boom (Foil)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "slid3_boom_foil",
-					Material: "Foil",
-					Name:     "Sticker | Boom (Foil)",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Boom (Foil)",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "Exotic",
+		WearName:     "",
+		FullItemName: "Sticker | Boom (Foil)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "slid3_boom_foil",
+				Material: "Foil",
+				Name:     "Sticker | Boom (Foil)",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Foil"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -405,18 +406,19 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(95),
 		Origin:     uint32Pointer(23),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Sir Bloody Miami Darryl | The Professionals",
+		QualityName:  "Unique",
+		WeaponType:   "Agent",
+		RarityName:   "Master",
+		WearName:     "",
+		FullItemName: "Sir Bloody Miami Darryl | The Professionals",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Agent"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Sir Bloody Miami Darryl | The Professionals",
-			QualityName:  "Unique",
-			WeaponType:   "Agent",
-			RarityName:   "Master",
-			WearName:     "",
-			FullItemName: "Sir Bloody Miami Darryl | The Professionals",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -439,25 +441,25 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(100),
 		Origin:    uint32Pointer(23),
 	}
-	tests["Agent Patch"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Sir Bloody Miami Darryl | The Professionals",
-			QualityName:  "Unique",
-			WeaponType:   "Agent",
-			RarityName:   "Master",
-			WearName:     "",
-			FullItemName: "Sir Bloody Miami Darryl | The Professionals",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "patch_wildfire",
-					Name:     "Patch | Wildfire",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Sir Bloody Miami Darryl | The Professionals",
+		QualityName:  "Unique",
+		WeaponType:   "Agent",
+		RarityName:   "Master",
+		WearName:     "",
+		FullItemName: "Sir Bloody Miami Darryl | The Professionals",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "patch_wildfire",
+				Name:     "Patch | Wildfire",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Agent Patch"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -480,25 +482,25 @@ func getTestCases() map[string]protoTestCase {
 			},
 		},
 	}
-	tests["Keychain"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Baby Karat T",
-			QualityName:  "Unique",
-			WeaponType:   "Charm",
-			RarityName:   "Extraordinary",
-			WearName:     "",
-			FullItemName: "Charm | Baby Karat T",
-			Keychains: []item.Modification{
-				item.Modification{
-					Proto:    input.Keychains[0],
-					CodeName: "kc_wpn_tknife_gold",
-					Name:     "Charm | Baby Karat T",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Baby Karat T",
+		QualityName:  "Unique",
+		WeaponType:   "Charm",
+		RarityName:   "Extraordinary",
+		WearName:     "",
+		FullItemName: "Charm | Baby Karat T",
+		Keychains: []*item.Modification{
+			{
+				CodeName: "kc_wpn_tknife_gold",
+				Name:     "Charm | Baby Karat T",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Keychain"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -516,20 +518,21 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(153),
 		Origin:     uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.045938506722450256,
+		MinFloat:     "0",
+		MaxFloat:     "1",
+		ItemName:     "Printstream",
+		QualityName:  "Unique",
+		WeaponType:   "AWP",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "AWP | Printstream (Factory New)",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Skin"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.045938506722450256,
-			MinFloat:     "0",
-			MaxFloat:     "1",
-			ItemName:     "Printstream",
-			QualityName:  "Unique",
-			WeaponType:   "AWP",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "AWP | Printstream (Factory New)",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -577,53 +580,49 @@ func getTestCases() map[string]protoTestCase {
 			},
 		},
 	}
-	tests["Skin Stickers Keychain"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.05140004679560661,
-			MinFloat:     "0",
-			MaxFloat:     "0.9",
-			ItemName:     "Vulcan",
-			QualityName:  "Unique",
-			WeaponType:   "AK-47",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "AK-47 | Vulcan (Factory New)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "eslcologne2015_team_clg_foil",
-					Material: "Foil",
-					Name:     "Sticker | Counter Logic Gaming (Foil) | Cologne 2015",
-				},
-				item.Modification{
-					Proto:    input.Stickers[1],
-					CodeName: "cologne2016_team_liq_holo",
-					Material: "Holo",
-					Name:     "Sticker | Team Liquid (Holo) | Cologne 2016",
-				},
-				item.Modification{
-					Proto:    input.Stickers[2],
-					CodeName: "cologne2014_epsilonesports",
-					Material: "Paper",
-					Name:     "Sticker | Epsilon eSports | Cologne 2014",
-				},
-				item.Modification{
-					Proto:    input.Stickers[3],
-					CodeName: "drugwarveteran",
-					Material: "Paper",
-					Name:     "Sticker | Drug War Veteran",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0.05140004679560661,
+		MinFloat:     "0",
+		MaxFloat:     "0.9",
+		ItemName:     "Vulcan",
+		QualityName:  "Unique",
+		WeaponType:   "AK-47",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "AK-47 | Vulcan (Factory New)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "eslcologne2015_team_clg_foil",
+				Material: "Foil",
+				Name:     "Sticker | Counter Logic Gaming (Foil) | Cologne 2015",
 			},
-			Keychains: []item.Modification{
-				item.Modification{
-					Proto:    input.Keychains[0],
-					CodeName: "kc_missinglink_ava",
-					Name:     "Charm | Lil' Ava",
-				},
+			{
+				CodeName: "cologne2016_team_liq_holo",
+				Material: "Holo",
+				Name:     "Sticker | Team Liquid (Holo) | Cologne 2016",
+			},
+			{
+				CodeName: "cologne2014_epsilonesports",
+				Material: "Paper",
+				Name:     "Sticker | Epsilon eSports | Cologne 2014",
+			},
+			{
+				CodeName: "drugwarveteran",
+				Material: "Paper",
+				Name:     "Sticker | Drug War Veteran",
 			},
 		},
+		Keychains: []*item.Modification{
+			{
+				CodeName: "kc_missinglink_ava",
+				Name:     "Charm | Lil' Ava",
+			},
+		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Skin Stickers Keychain"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -641,20 +640,21 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(3221225482),
 		Origin:     uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.06240295618772507,
+		MinFloat:     "0.06",
+		MaxFloat:     "0.8",
+		ItemName:     "Bronzed",
+		QualityName:  "★",
+		WeaponType:   "Bloodhound Gloves",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "★ Bloodhound Gloves | Bronzed (Factory New)",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Gloves"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.06240295618772507,
-			MinFloat:     "0.06",
-			MaxFloat:     "0.8",
-			ItemName:     "Bronzed",
-			QualityName:  "★",
-			WeaponType:   "Bloodhound Gloves",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "★ Bloodhound Gloves | Bronzed (Factory New)",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -676,26 +676,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(85),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Sticker Glitter"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Lotus (Glitter)",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "Remarkable",
-			WearName:     "",
-			FullItemName: "Sticker | Lotus (Glitter)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "glitter_lotus",
-					Material: "Glitter",
-					Name:     "Sticker | Lotus (Glitter)",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Lotus (Glitter)",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "Remarkable",
+		WearName:     "",
+		FullItemName: "Sticker | Lotus (Glitter)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "glitter_lotus",
+				Material: "Glitter",
+				Name:     "Sticker | Lotus (Glitter)",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Glitter"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -717,25 +717,25 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(268),
 		Origin:    uint32Pointer(23),
 	}
-	tests["Patch"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Elder God",
-			QualityName:  "Unique",
-			WeaponType:   "Patch",
-			RarityName:   "Exotic",
-			WearName:     "",
-			FullItemName: "Patch | Elder God",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "patch_op11_cthulhu",
-					Name:     "Patch | Elder God",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Elder God",
+		QualityName:  "Unique",
+		WeaponType:   "Patch",
+		RarityName:   "Exotic",
+		WearName:     "",
+		FullItemName: "Patch | Elder God",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "patch_op11_cthulhu",
+				Name:     "Patch | Elder God",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Patch"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -755,20 +755,21 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:          uint32Pointer(253),
 		Origin:             uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.045039694756269455,
+		MinFloat:     "0",
+		MaxFloat:     "1",
+		ItemName:     "Printstream",
+		QualityName:  "StatTrak™",
+		WeaponType:   "AWP",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "StatTrak™ AWP | Printstream (Factory New)",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Skin StatTrak"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.045039694756269455,
-			MinFloat:     "0",
-			MaxFloat:     "1",
-			ItemName:     "Printstream",
-			QualityName:  "StatTrak™",
-			WeaponType:   "AWP",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "StatTrak™ AWP | Printstream (Factory New)",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -786,20 +787,21 @@ func getTestCases() map[string]protoTestCase {
 		Inventory:  uint32Pointer(15),
 		Origin:     uint32Pointer(8),
 	}
+	expectedItem = &item.Item{
+		FloatValue:   0.03238934278488159,
+		MinFloat:     "0",
+		MaxFloat:     "0.08",
+		ItemName:     "Gamma Doppler",
+		QualityName:  "★",
+		WeaponType:   "Bayonet",
+		RarityName:   "Covert",
+		WearName:     "Factory New",
+		FullItemName: "★ Bayonet | Gamma Doppler (Factory New)",
+	}
+	expectedItem.PopulateProto(input)
 	tests["Knife"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0.03238934278488159,
-			MinFloat:     "0",
-			MaxFloat:     "0.08",
-			ItemName:     "Gamma Doppler",
-			QualityName:  "★",
-			WeaponType:   "Bayonet",
-			RarityName:   "Covert",
-			WearName:     "Factory New",
-			FullItemName: "★ Bayonet | Gamma Doppler (Factory New)",
-		},
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -821,26 +823,26 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(159),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Sticker Holo"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Lit (Holo)",
-			QualityName:  "Unique",
-			WeaponType:   "Sticker",
-			RarityName:   "Remarkable",
-			WearName:     "",
-			FullItemName: "Sticker | Lit (Holo)",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "holo_lit",
-					Material: "Holo",
-					Name:     "Sticker | Lit (Holo)",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Lit (Holo)",
+		QualityName:  "Unique",
+		WeaponType:   "Sticker",
+		RarityName:   "Remarkable",
+		WearName:     "",
+		FullItemName: "Sticker | Lit (Holo)",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "holo_lit",
+				Material: "Holo",
+				Name:     "Sticker | Lit (Holo)",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Sticker Holo"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 
@@ -862,25 +864,25 @@ func getTestCases() map[string]protoTestCase {
 		Inventory: uint32Pointer(6),
 		Origin:    uint32Pointer(8),
 	}
-	tests["Graffiti"] = protoTestCase{
-		input: input,
-		expectedItem: &item.Item{
-			Proto:        input,
-			FloatValue:   0,
-			ItemName:     "Drug War Veteran",
-			QualityName:  "Unique",
-			WeaponType:   "Sealed Graffiti",
-			RarityName:   "Exotic",
-			WearName:     "",
-			FullItemName: "Sealed Graffiti | Drug War Veteran",
-			Stickers: []item.Modification{
-				item.Modification{
-					Proto:    input.Stickers[0],
-					CodeName: "spray_drugwarveteran",
-					Name:     "Sealed Graffiti | Drug War Veteran",
-				},
+	expectedItem = &item.Item{
+		FloatValue:   0,
+		ItemName:     "Drug War Veteran",
+		QualityName:  "Unique",
+		WeaponType:   "Sealed Graffiti",
+		RarityName:   "Exotic",
+		WearName:     "",
+		FullItemName: "Sealed Graffiti | Drug War Veteran",
+		Stickers: []*item.Modification{
+			{
+				CodeName: "spray_drugwarveteran",
+				Name:     "Sealed Graffiti | Drug War Veteran",
 			},
 		},
+	}
+	expectedItem.PopulateProto(input)
+	tests["Graffiti"] = protoTestCase{
+		input:         input,
+		expectedItem:  expectedItem,
 		expectedError: nil,
 	}
 

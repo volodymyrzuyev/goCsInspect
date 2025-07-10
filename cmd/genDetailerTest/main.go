@@ -121,6 +121,7 @@ func main() {
 	fmt.Fprintf(output, "func getTestCasesNew() map[string]protoTestCase {\n")
 	fmt.Fprintf(output, "	tests := make(map[string]protoTestCase)\n")
 	fmt.Fprintf(output, "	var input *protobuf.CEconItemPreviewDataBlock\n")
+	fmt.Fprintf(output, "	var expectedItem *item.Item\n")
 
 	output.Close()
 
@@ -263,11 +264,11 @@ func generateProtoTestCaseReflectV2(name, link, tmLink string, repProto *protobu
 	}
 	fmt.Fprintf(output, "		}\n")
 
+	fmt.Fprintf(output, "	expectedItem = &item.Item{}\n")
+	fmt.Fprintf(output, "	expectedItem.PopulateProto(input)\n")
 	fmt.Fprintf(output, "	tests[\"%s\"] = protoTestCase{\n", name)
 	fmt.Fprintf(output, "		input: input,\n")
-	fmt.Fprintf(output, "		expectedItem: &item.Item{\n")
-	fmt.Fprintf(output, "			Proto: input,\n")
-	fmt.Fprintf(output, "		},\n")
+	fmt.Fprintf(output, "		expectedItem: expectedItem,\n")
 	fmt.Fprintf(output, "		expectedError: nil,\n")
 	fmt.Fprintf(output, "	}\n\n")
 }

@@ -43,62 +43,46 @@ func NewDetailer(langugeFile, gameItems string) Detailer {
 	}
 }
 
-func (d *detailer) detailModificationsStickers(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]item.Modification, error) {
-	var mods []item.Modification
-
-	for _, proto := range protos {
-		mod := getBaseMod(proto)
-
-		stickerSubtype, ok := d.allItems.AllStickerItems[int(mod.Proto.GetStickerId())]
+func (d *detailer) detailModificationsStickers(item *item.Item) error {
+	for _, sticker := range item.Stickers {
+		stickerSubtype, ok := d.allItems.AllStickerItems[int(sticker.StickerId)]
 		if !ok {
-			return nil, errors.ErrUnknownStickerModifier
+			return errors.ErrUnknownStickerModifier
 		}
+
 		switch s := stickerSubtype.(type) {
 		case *csgo.Stickerkit:
-			mod.CodeName = s.Id
-			mod.Material = s.Variant
-			mod.Name = fmt.Sprintf("Sticker | %s", s.Name)
+			sticker.CodeName = s.Id
+			sticker.Material = s.Variant
+			sticker.Name = fmt.Sprintf("Sticker | %s", s.Name)
 
 		case *csgo.Spraykit:
-			mod.CodeName = s.Id
-			mod.Name = fmt.Sprintf("Sealed Graffiti | %s", s.Name)
+			sticker.CodeName = s.Id
+			sticker.Name = fmt.Sprintf("Sealed Graffiti | %s", s.Name)
 
 		case *csgo.Patchkit:
-			mod.CodeName = s.Id
-			mod.Name = fmt.Sprintf("Patch | %s", s.Name)
+			sticker.CodeName = s.Id
+			sticker.Name = fmt.Sprintf("Patch | %s", s.Name)
 		default:
-			return nil, errors.ErrUnknownStickerModifier
+			return errors.ErrUnknownStickerModifier
 		}
-
-		mods = append(mods, mod)
 	}
 
-	return mods, nil
+	return nil
 }
 
-func (d *detailer) detailModificationsChains(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) ([]item.Modification, error) {
-	var mods []item.Modification
-
-	for _, proto := range protos {
-		mod := getBaseMod(proto)
-
-		chain, ok := d.allItems.Keychains[int(mod.Proto.GetStickerId())]
+func (d *detailer) detailModificationsChains(item *item.Item) error {
+	for _, chainMod := range item.Keychains {
+		chain, ok := d.allItems.Keychains[int(chainMod.StickerId)]
 		if !ok {
-			return nil, errors.ErrUnknownStickerModifier
+			return errors.ErrUnknownStickerModifier
 		}
-		mod.CodeName = chain.Id
-		mod.Name = fmt.Sprintf("Charm | %s", chain.Name)
 
-		mods = append(mods, mod)
+		chainMod.CodeName = chain.Id
+		chainMod.Name = fmt.Sprintf("Charm | %s", chain.Name)
 	}
 
-	return mods, nil
-}
-
-func getBaseMod(proto *protobuf.CEconItemPreviewDataBlock_Sticker) item.Modification {
-	return item.Modification{
-		Proto: proto,
-	}
+	return nil
 }
 
 func getWearName(float float64) string {
@@ -138,33 +122,29 @@ const (
 )
 
 func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error) {
-	item := &item.Item{
-		Proto: proto,
-	}
+	item := &item.Item{}
+	item.PopulateProto(proto)
 	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)
 
-	var err error
-	item.Stickers, err = d.detailModificationsStickers(proto.Stickers)
-	if err != nil {
+	if err := d.detailModificationsStickers(item); err != nil {
 		slog.Error("Unknown sticker", "proto", proto)
 		return nil, err
 	}
 
-	item.Keychains, err = d.detailModificationsChains(proto.Keychains)
-	if err != nil {
+	if err := d.detailModificationsChains(item); err != nil {
 		slog.Error("Unknown sticker", "proto", proto)
 		return nil, err
 	}
 
 	item.WearName = getWearName(item.FloatValue)
 
-	rarity, ok := d.allItems.Rarities[int(item.Proto.GetRarity())]
+	rarity, ok := d.allItems.Rarities[int(proto.GetRarity())]
 	if !ok {
-		slog.Error("Rarity not found", "item_id", item.Proto.GetItemid(), "rarity_index", item.Proto.GetRarity())
+		slog.Error("Rarity not found", "item_id", proto.GetItemid(), "rarity_index", proto.GetRarity())
 		return nil, errors.ErrUnknownRarity
 	}
 
-	if defIndex, ok := d.allItems.DefIndecies[int(item.Proto.GetDefindex())]; ok {
+	if defIndex, ok := d.allItems.DefIndecies[int(proto.GetDefindex())]; ok {
 		switch itemType := defIndex.(type) {
 		case *csgo.Weapon:
 			item.MaxFloat = maxDefaultFloat
@@ -187,19 +167,19 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 			switch itemType.Index {
 			case stickerDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Stickerkits[int(item.Stickers[0].Proto.GetStickerId())].Name
+				item.ItemName = d.allItems.Stickerkits[int(proto.Stickers[0].GetStickerId())].Name
 
 			case sprayDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Spraykits[int(item.Stickers[0].Proto.GetStickerId())].Name
+				item.ItemName = d.allItems.Spraykits[int(proto.Stickers[0].GetStickerId())].Name
 
 			case pathDefIndex:
 				item.FullItemName = item.Stickers[0].Name
-				item.ItemName = d.allItems.Patchkits[int(item.Stickers[0].Proto.GetStickerId())].Name
+				item.ItemName = d.allItems.Patchkits[int(proto.Stickers[0].GetStickerId())].Name
 
 			case chainDefIndex:
 				item.FullItemName = item.Keychains[0].Name
-				item.ItemName = d.allItems.Keychains[int(item.Keychains[0].Proto.GetStickerId())].Name
+				item.ItemName = d.allItems.Keychains[int(proto.Keychains[0].GetStickerId())].Name
 
 			case musicDefIndex:
 				music, ok := d.allItems.Musickits[int(proto.GetMusicindex())]
@@ -211,8 +191,7 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 
 			default:
 				slog.Debug("Unexpected def_index, details won't be populated",
-					"def_index", item.Proto.GetDefindex())
-
+					"def_index", proto.GetDefindex())
 			}
 
 		case *csgo.Collectible:
@@ -229,15 +208,15 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 
 		default:
 			slog.Debug("Unexpected def_index, details won't be populated",
-				"def_index", item.Proto.GetDefindex())
+				"def_index", proto.GetDefindex())
 
 		}
 	} else {
-		slog.Error("Unknown def_index", "def_index", item.Proto.GetDefindex())
+		slog.Error("Unknown def_index", "def_index", proto.GetDefindex())
 		return nil, errors.ErrUnknownDefIndex
 	}
-	if item.Proto.GetPaintindex() != defaultPaintKitIndex {
-		paintKit, ok := d.allItems.Paintkits[int(item.Proto.GetPaintindex())]
+	if proto.GetPaintindex() != defaultPaintKitIndex {
+		paintKit, ok := d.allItems.Paintkits[int(proto.GetPaintindex())]
 		if !ok {
 			return nil, errors.ErrUnknownPaintIndex
 		}
@@ -249,21 +228,21 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 	} else {
 		// since the item has a default paintIndex, and it's a knife, this means
 		// it's a vanila knife, they don't show their WearName in the FullItemName
-		if _, ok := d.allItems.Knives[int(item.Proto.GetDefindex())]; ok {
+		if _, ok := d.allItems.Knives[int(proto.GetDefindex())]; ok {
 			item.FullItemName = item.WeaponType
 		}
 	}
 
-	quality, ok := d.allItems.Qualities[int(item.Proto.GetQuality())]
+	quality, ok := d.allItems.Qualities[int(proto.GetQuality())]
 	if !ok {
 		slog.Error("Quality not found",
-			"item_id", item.Proto.GetItemid(), "quality_index", item.Proto.GetQuality())
+			"item_id", proto.GetItemid(), "quality_index", proto.GetQuality())
 		return nil, errors.ErrUnknownRarity
 	}
 
 	item.QualityName = quality.Name
-	if item.Proto.GetQuality() != defaultItemQuality {
-		if _, ok := d.allItems.Knives[int(item.Proto.GetDefindex())]; proto.Killeaterscoretype != nil && ok {
+	if proto.GetQuality() != defaultItemQuality {
+		if _, ok := d.allItems.Knives[int(proto.GetDefindex())]; proto.Killeaterscoretype != nil && ok {
 			item.FullItemName = fmt.Sprintf("%s %s %s", item.QualityName, d.allItems.Qualities[statTrackQuality].Name, item.FullItemName)
 		} else {
 			item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)

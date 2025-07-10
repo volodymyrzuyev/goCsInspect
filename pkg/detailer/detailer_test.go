@@ -31,7 +31,26 @@ func TestDetailSkin(t *testing.T) {
 				return
 			}
 
-			assert.Equal(t, input.expectedItem.Proto, respItem.Proto, "Proto should be the same")
+			// proto comparison
+			assert.Equal(t, input.expectedItem.Accountid, respItem.Accountid, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Itemid, respItem.Itemid, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Defindex, respItem.Defindex, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Paintindex, respItem.Paintindex, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Rarity, respItem.Rarity, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Quality, respItem.Quality, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Paintwear, respItem.Paintwear, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Paintseed, respItem.Paintseed, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Killeaterscoretype, respItem.Killeaterscoretype, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Killeatervalue, respItem.Killeatervalue, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Customname, respItem.Customname, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Inventory, respItem.Inventory, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Origin, respItem.Origin, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Questid, respItem.Questid, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Dropreason, respItem.Dropreason, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Musicindex, respItem.Musicindex, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Entindex, respItem.Entindex, "Proto should be the same")
+			assert.Equal(t, input.expectedItem.Petindex, respItem.Petindex, "Proto should be the same")
+
 			assert.Equal(t, fmt.Sprintf("%.15f", input.expectedItem.FloatValue), fmt.Sprintf("%.15f", respItem.FloatValue), "Float values should be same")
 			assert.Equal(t, input.expectedItem.MinFloat, respItem.MinFloat, "MinFloat should be the same")
 			assert.Equal(t, input.expectedItem.MaxFloat, respItem.MaxFloat, "MaxFloat should be the same")
