@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log/slog"
 	"math"
+	"strconv"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/volodymyrzuyev/go-csgo-item-parser/csgo"
@@ -133,13 +134,14 @@ const (
 
 	defaultItemQuality   = 4
 	defaultPaintKitIndex = 0
+	statTrackQuality     = 9
 )
 
 func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*types.Item, error) {
 	item := &types.Item{
-		Proto:      proto,
-		FloatValue: float64(math.Float32frombits(proto.GetPaintwear())),
+		Proto: proto,
 	}
+	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)
 
 	var err error
 	item.Stickers, err = d.detailModificationsStickers(proto.Stickers)
@@ -213,6 +215,12 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 
 			}
 
+		case *csgo.Collectible:
+			item.WeaponType = "Pin"
+			item.RarityName = rarity.GeneralRarityName
+			item.ItemName = itemType.Name
+			item.FullItemName = itemType.Name
+
 		case *csgo.Character:
 			item.WeaponType = "Agent"
 			item.RarityName = rarity.CharacterRarityName
@@ -238,6 +246,12 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 		item.MinFloat = paintKit.MinFloat.String()
 		item.ItemName = paintKit.Name
 		item.FullItemName = fmt.Sprintf("%s | %s (%s)", item.WeaponType, item.ItemName, item.WearName)
+	} else {
+		// since the item has a default paintIndex, and it's a knife, this means
+		// it's a vanila knife, they don't show their WearName in the FullItemName
+		if _, ok := d.allItems.Knives[int(item.Proto.GetDefindex())]; ok {
+			item.FullItemName = item.WeaponType
+		}
 	}
 
 	quality, ok := d.allItems.Qualities[int(item.Proto.GetQuality())]
@@ -249,7 +263,11 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*type
 
 	item.QualityName = quality.Name
 	if item.Proto.GetQuality() != defaultItemQuality {
-		item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)
+		if _, ok := d.allItems.Knives[int(item.Proto.GetDefindex())]; proto.Killeaterscoretype != nil && ok {
+			item.FullItemName = fmt.Sprintf("%s %s %s", item.QualityName, d.allItems.Qualities[statTrackQuality].Name, item.FullItemName)
+		} else {
+			item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)
+		}
 	}
 
 	return item, nil

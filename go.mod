@@ -9,7 +9,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.10.0
-	github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250707191542-c346d83e533c
+	github.com/volodymyrzuyev/go-csgo-item-parser v0.0.0-20250710020135-9aa9b5dbb870
 	google.golang.org/protobuf v1.30.0
 )
 

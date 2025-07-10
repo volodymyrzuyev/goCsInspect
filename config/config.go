@@ -3,6 +3,8 @@ package config
 import (
 	"log/slog"
 	"os"
+	"path/filepath"
+	"runtime"
 	"time"
 )
 
@@ -10,11 +12,12 @@ var (
 	TimeOutDuration = 10 * time.Second
 	RequestCooldown = 10 * time.Second
 
-	EnglishFile = "./game_files/csgo_english.txt"
-	GameItems   = "./game_files/items_game.txt"
+	// Use relative paths from project root
+	EnglishFile = "game_files/csgo_english.txt"
+	GameItems   = "game_files/items_game.txt"
 
 	IsDebug       = true
-	DebugLocation = "./debug/logs"
+	DebugLocation = "debug/logs"
 	DebugLogger   = getDebugLogger()
 
 	DefaultClientConfig = ClientConfig{
@@ -35,8 +38,33 @@ type ClientConfig struct {
 	DebugLogger   *slog.Logger
 }
 
+// getProjectRoot returns the absolute path to the project root directory
+func getProjectRoot() string {
+	// Get the directory of the current file
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current file path")
+	}
+
+	// Go up from config/ to project root
+	projectRoot := filepath.Dir(filepath.Dir(filename))
+	return projectRoot
+}
+
+// getAbsolutePath converts a relative path to absolute path from project root
+func getAbsolutePath(relativePath string) string {
+	projectRoot := getProjectRoot()
+	return filepath.Join(projectRoot, relativePath)
+}
+
 func getDebugLogger() *slog.Logger {
-	logFile, err := os.OpenFile(DebugLocation, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
+	// Ensure debug directory exists
+	debugDir := filepath.Dir(getAbsolutePath(DebugLocation))
+	if err := os.MkdirAll(debugDir, 0755); err != nil {
+		panic(err)
+	}
+
+	logFile, err := os.OpenFile(getAbsolutePath(DebugLocation), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
 	if err != nil {
 		panic(err)
 	}
@@ -45,4 +73,14 @@ func getDebugLogger() *slog.Logger {
 		Level: slog.LevelDebug,
 	}))
 	return logger
+}
+
+// GetEnglishFile returns the absolute path to the English file
+func GetEnglishFile() string {
+	return getAbsolutePath(EnglishFile)
+}
+
+// GetGameItems returns the absolute path to the game items file
+func GetGameItems() string {
+	return getAbsolutePath(GameItems)
 }

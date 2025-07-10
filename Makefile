@@ -5,4 +5,4 @@ run:
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go run cmd/test/main.go
 
 test:
-	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test ./...
+	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test ./... -v
