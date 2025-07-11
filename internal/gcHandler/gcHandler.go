@@ -8,7 +8,7 @@ import (
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"google.golang.org/protobuf/proto"
 )
 

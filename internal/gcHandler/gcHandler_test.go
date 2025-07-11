@@ -8,7 +8,7 @@ import (
 
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/stretchr/testify/assert"
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 )
 
 func TestStoreResponse(t *testing.T) {

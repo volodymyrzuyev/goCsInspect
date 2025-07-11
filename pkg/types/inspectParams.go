@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 )
 
 type InspectParameters struct {

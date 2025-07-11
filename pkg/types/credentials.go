@@ -2,7 +2,7 @@ package types
 
 import (
 	"github.com/Philipp15b/go-steam/v3"
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 
 	twoFA "github.com/bbqtd/go-steam-authenticator"
 )

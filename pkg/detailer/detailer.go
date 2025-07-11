@@ -10,7 +10,7 @@ import (
 	"github.com/volodymyrzuyev/go-csgo-item-parser/csgo"
 	"github.com/volodymyrzuyev/go-csgo-item-parser/parser"
 
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 

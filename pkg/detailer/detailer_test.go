@@ -7,6 +7,7 @@ import (
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/stretchr/testify/assert"
 	"github.com/volodymyrzuyev/goCsInspect/config"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 
@@ -67,26 +68,11 @@ func TestDetailSkin(t *testing.T) {
 
 }
 
-func uint64Pointer(i uint64) *uint64 {
-	return &i
-}
-
-func uint32Pointer(i uint32) *uint32 {
-	return &i
-}
-
-func float32Pointer(f float32) *float32 {
-	return &f
-}
-
-func float64Pointer(f float64) *float64 {
-	return &f
-}
-
-func stringPointer(s string) *string {
-	return &s
-}
-
-func int32Pointer(i int32) *int32 {
-	return &i
-}
+var (
+	uint64Pointer  = common.Uint64Pointer
+	uint32Pointer  = common.Uint32Pointer
+	float32Pointer = common.Float32Pointer
+	float64Pointer = common.Float64Pointer
+	stringPointer  = common.StringPointer
+	int32Pointer   = common.Int32Pointer
+)

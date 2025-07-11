@@ -3,10 +3,10 @@ package clientManagement
 import (
 	"log/slog"
 
-	"github.com/volodymyrzuyev/goCsInspect/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
