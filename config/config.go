@@ -4,8 +4,9 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"runtime"
 	"time"
+
+	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 )
 
 var (
@@ -38,33 +39,14 @@ type ClientConfig struct {
 	DebugLogger   *slog.Logger
 }
 
-// getProjectRoot returns the absolute path to the project root directory
-func getProjectRoot() string {
-	// Get the directory of the current file
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current file path")
-	}
-
-	// Go up from config/ to project root
-	projectRoot := filepath.Dir(filepath.Dir(filename))
-	return projectRoot
-}
-
-// getAbsolutePath converts a relative path to absolute path from project root
-func getAbsolutePath(relativePath string) string {
-	projectRoot := getProjectRoot()
-	return filepath.Join(projectRoot, relativePath)
-}
-
 func getDebugLogger() *slog.Logger {
 	// Ensure debug directory exists
-	debugDir := filepath.Dir(getAbsolutePath(DebugLocation))
+	debugDir := filepath.Dir(common.GetAbsolutePath(DebugLocation))
 	if err := os.MkdirAll(debugDir, 0755); err != nil {
 		panic(err)
 	}
 
-	logFile, err := os.OpenFile(getAbsolutePath(DebugLocation), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
+	logFile, err := os.OpenFile(common.GetAbsolutePath(DebugLocation), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
 	if err != nil {
 		panic(err)
 	}
@@ -77,10 +59,10 @@ func getDebugLogger() *slog.Logger {
 
 // GetEnglishFile returns the absolute path to the English file
 func GetEnglishFile() string {
-	return getAbsolutePath(EnglishFile)
+	return common.GetAbsolutePath(EnglishFile)
 }
 
 // GetGameItems returns the absolute path to the game items file
 func GetGameItems() string {
-	return getAbsolutePath(GameItems)
+	return common.GetAbsolutePath(GameItems)
 }
