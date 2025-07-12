@@ -22,7 +22,7 @@ CREATE TABLE items (
   Musicindex INTEGER,
   Entindex INTEGER,
   Petindex INTEGER,
-  PRIMARY KEY (M, A, D, S)
+  PRIMARY KEY (M, Itemid, D, S)
 );
 
 CREATE TABLE mods (

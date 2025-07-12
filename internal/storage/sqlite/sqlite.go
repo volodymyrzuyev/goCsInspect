@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	proto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite/sql/sqlc"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
@@ -27,7 +28,7 @@ func NewSQLiteStore(dbPath string) storage.Storage {
 		panic(err)
 	}
 
-	migrateDB(dbPath)
+	migrateDB("sqlite://" + dbPath)
 
 	q := sqlc.New(db)
 
@@ -236,5 +237,5 @@ func (s *Sqlite) GetItem(ctx context.Context, params t.InspectParameters) (*prot
 		return nil, errors.ErrFetchKeychain
 	}
 
-	return assembleItem(dbItem, stickers, chains)
+	return assembleItem(dbItem, chains, stickers)
 }

@@ -121,7 +121,7 @@ SELECT mods.* FROM mods, modsStickers s WHERE
     AND s.S = ?3
     AND s.Itemid = ?4
     AND mods.Modid = s.Modid
-    ORDER BY Modid;
+    ORDER BY mods.Modid;
 
 -- name: GetChains :many
 SELECT mods.* FROM mods, modsChains s WHERE 
@@ -130,4 +130,4 @@ SELECT mods.* FROM mods, modsChains s WHERE
     AND s.S = ?3
     AND s.Itemid = ?4
     AND mods.Modid = s.Modid
-    ORDER BY Modid;
+    ORDER BY mods.Modid;
