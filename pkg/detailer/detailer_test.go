@@ -2,77 +2,112 @@ package detailer
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
-	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert/yaml"
 	"github.com/volodymyrzuyev/goCsInspect/config"
+	"github.com/volodymyrzuyev/goCsInspect/internal/testcommon"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 )
 
-type protoTestCase struct {
-	input         *protobuf.CEconItemPreviewDataBlock
-	expectedItem  *item.Item
-	expectedError error
+type expected struct {
+	Item *item.Item
+	Err  error
+}
+
+func getExpected() map[string]*expected {
+	protoPath := common.GetAbsolutePath(filepath.Join("tests", "detailerGoldenOutput"))
+
+	fs, err := os.ReadDir(protoPath)
+	if err != nil {
+		panic(err)
+	}
+
+	ret := make(map[string]*expected)
+
+	for _, f := range fs {
+		if f.IsDir() {
+			continue
+		}
+
+		name := strings.ReplaceAll(f.Name(), ".yaml", "")
+
+		toParse, err := os.ReadFile(filepath.Join(protoPath, f.Name()))
+		if err != nil {
+			panic(err)
+		}
+
+		newExpected := expected{}
+		err = yaml.Unmarshal(toParse, &newExpected)
+		if err != nil {
+			panic(err)
+		}
+
+		ret[name] = &newExpected
+	}
+
+	return ret
 }
 
 func TestDetailSkin(t *testing.T) {
 	detailer := NewDetailer(config.GetEnglishFile(), config.GetGameItems())
 
-	tests := getTestCases()
+	tests := testcommon.GetTestProtoData()
+	expected := getExpected()
 
-	for testName, input := range tests {
-		t.Run(testName, func(t *testing.T) {
-			respItem, respErr := detailer.DetailProto(input.input)
+	for name, input := range tests {
+		t.Run(name, func(t *testing.T) {
 
-			assert.Equal(t, respErr, input.expectedError, "errors should be the same. Resp error %v", respErr)
+			actual, actErr := detailer.DetailProto(input)
 
-			if respErr != nil {
+			cur, ok := expected[name]
+			if !ok {
+				t.Fatal("A test case does not have a golden output")
+			}
+
+			assert.Equal(t, actErr, cur.Err, "errors should be the same. Resp error %v", actErr)
+
+			if actErr != nil {
 				return
 			}
 
 			// proto comparison
-			assert.Equal(t, input.expectedItem.Accountid, respItem.Accountid, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Itemid, respItem.Itemid, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Defindex, respItem.Defindex, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Paintindex, respItem.Paintindex, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Rarity, respItem.Rarity, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Quality, respItem.Quality, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Paintwear, respItem.Paintwear, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Paintseed, respItem.Paintseed, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Killeaterscoretype, respItem.Killeaterscoretype, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Killeatervalue, respItem.Killeatervalue, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Customname, respItem.Customname, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Inventory, respItem.Inventory, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Origin, respItem.Origin, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Questid, respItem.Questid, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Dropreason, respItem.Dropreason, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Musicindex, respItem.Musicindex, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Entindex, respItem.Entindex, "Proto should be the same")
-			assert.Equal(t, input.expectedItem.Petindex, respItem.Petindex, "Proto should be the same")
+			assert.Equal(t, cur.Item.Accountid, actual.Accountid, "Proto should be the same")
+			assert.Equal(t, cur.Item.Itemid, actual.Itemid, "Proto should be the same")
+			assert.Equal(t, cur.Item.Defindex, actual.Defindex, "Proto should be the same")
+			assert.Equal(t, cur.Item.Paintindex, actual.Paintindex, "Proto should be the same")
+			assert.Equal(t, cur.Item.Rarity, actual.Rarity, "Proto should be the same")
+			assert.Equal(t, cur.Item.Quality, actual.Quality, "Proto should be the same")
+			assert.Equal(t, cur.Item.Paintwear, actual.Paintwear, "Proto should be the same")
+			assert.Equal(t, cur.Item.Paintseed, actual.Paintseed, "Proto should be the same")
+			assert.Equal(t, cur.Item.Killeaterscoretype, actual.Killeaterscoretype, "Proto should be the same")
+			assert.Equal(t, cur.Item.Killeatervalue, actual.Killeatervalue, "Proto should be the same")
+			assert.Equal(t, cur.Item.Customname, actual.Customname, "Proto should be the same")
+			assert.Equal(t, cur.Item.Inventory, actual.Inventory, "Proto should be the same")
+			assert.Equal(t, cur.Item.Origin, actual.Origin, "Proto should be the same")
+			assert.Equal(t, cur.Item.Questid, actual.Questid, "Proto should be the same")
+			assert.Equal(t, cur.Item.Dropreason, actual.Dropreason, "Proto should be the same")
+			assert.Equal(t, cur.Item.Musicindex, actual.Musicindex, "Proto should be the same")
+			assert.Equal(t, cur.Item.Entindex, actual.Entindex, "Proto should be the same")
+			assert.Equal(t, cur.Item.Petindex, actual.Petindex, "Proto should be the same")
 
-			assert.Equal(t, fmt.Sprintf("%.15f", input.expectedItem.FloatValue), fmt.Sprintf("%.15f", respItem.FloatValue), "Float values should be same")
-			assert.Equal(t, input.expectedItem.MinFloat, respItem.MinFloat, "MinFloat should be the same")
-			assert.Equal(t, input.expectedItem.MaxFloat, respItem.MaxFloat, "MaxFloat should be the same")
-			assert.Equal(t, input.expectedItem.ItemName, respItem.ItemName, "ItemName should be the same")
-			assert.Equal(t, input.expectedItem.QualityName, respItem.QualityName, "QualityName should be the same")
-			assert.Equal(t, input.expectedItem.WeaponType, respItem.WeaponType, "WeaponType should be the same")
-			assert.Equal(t, input.expectedItem.RarityName, respItem.RarityName, "RarityName should be the same")
-			assert.Equal(t, input.expectedItem.WearName, respItem.WearName, "WearName should be the same")
-			assert.Equal(t, input.expectedItem.FullItemName, respItem.FullItemName, "FullItemName should be the same")
-			assert.Equal(t, input.expectedItem.Stickers, respItem.Stickers, "Stickers should be the same")
-			assert.Equal(t, input.expectedItem.Keychains, respItem.Keychains, "Keychains should be the same")
+			assert.Equal(t, fmt.Sprintf("%.15f", cur.Item.FloatValue), fmt.Sprintf("%.15f", actual.FloatValue), "Float values should be same")
+			assert.Equal(t, cur.Item.MinFloat, actual.MinFloat, "MinFloat should be the same")
+			assert.Equal(t, cur.Item.MaxFloat, actual.MaxFloat, "MaxFloat should be the same")
+			assert.Equal(t, cur.Item.ItemName, actual.ItemName, "ItemName should be the same")
+			assert.Equal(t, cur.Item.QualityName, actual.QualityName, "QualityName should be the same")
+			assert.Equal(t, cur.Item.WeaponType, actual.WeaponType, "WeaponType should be the same")
+			assert.Equal(t, cur.Item.RarityName, actual.RarityName, "RarityName should be the same")
+			assert.Equal(t, cur.Item.WearName, actual.WearName, "WearName should be the same")
+			assert.Equal(t, cur.Item.FullItemName, actual.FullItemName, "FullItemName should be the same")
+			assert.Equal(t, cur.Item.Stickers, actual.Stickers, "Stickers should be the same")
+			assert.Equal(t, cur.Item.Keychains, actual.Keychains, "Keychains should be the same")
 		})
 	}
 
 }
-
-var (
-	uint64Pointer  = common.Uint64Pointer
-	uint32Pointer  = common.Uint32Pointer
-	float32Pointer = common.Float32Pointer
-	float64Pointer = common.Float64Pointer
-	stringPointer  = common.StringPointer
-	int32Pointer   = common.Int32Pointer
-)

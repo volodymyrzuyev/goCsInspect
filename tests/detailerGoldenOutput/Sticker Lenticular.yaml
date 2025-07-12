@@ -1,0 +1,45 @@
+item:
+    accountid: 0
+    itemid: 45029291629
+    defindex: 1209
+    paintindex: 0
+    rarity: 6
+    quality: 4
+    paintwear: 0
+    paintseed: 0
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 3221225482
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers:
+        - slot: 0
+          stickerid: 5955
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: csgo10_freeze_lenticular
+          material: Lenticular
+          name: Sticker | Freeze (Lenticular)
+    keychains: []
+    floatvalue: 0
+    minfloat: ""
+    maxfloat: ""
+    itemname: Freeze (Lenticular)
+    qualityname: Unique
+    weapontype: Sticker
+    rarityname: Extraordinary
+    wearname: ""
+    fullitemname: Sticker | Freeze (Lenticular)
+err: null

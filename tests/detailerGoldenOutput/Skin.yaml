@@ -1,0 +1,31 @@
+item:
+    accountid: 0
+    itemid: 44825267139
+    defindex: 9
+    paintindex: 1206
+    rarity: 6
+    quality: 4
+    paintwear: 1027353092
+    paintseed: 966
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 153
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers: []
+    keychains: []
+    floatvalue: 0.045938506722450256
+    minfloat: "0"
+    maxfloat: "1"
+    itemname: Printstream
+    qualityname: Unique
+    weapontype: AWP
+    rarityname: Covert
+    wearname: Factory New
+    fullitemname: AWP | Printstream (Factory New)
+err: null

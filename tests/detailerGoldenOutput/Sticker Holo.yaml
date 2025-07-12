@@ -1,0 +1,45 @@
+item:
+    accountid: 0
+    itemid: 44809037288
+    defindex: 1209
+    paintindex: 0
+    rarity: 4
+    quality: 4
+    paintwear: 0
+    paintseed: 0
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 159
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers:
+        - slot: 0
+          stickerid: 7248
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: holo_lit
+          material: Holo
+          name: Sticker | Lit (Holo)
+    keychains: []
+    floatvalue: 0
+    minfloat: ""
+    maxfloat: ""
+    itemname: Lit (Holo)
+    qualityname: Unique
+    weapontype: Sticker
+    rarityname: Remarkable
+    wearname: ""
+    fullitemname: Sticker | Lit (Holo)
+err: null

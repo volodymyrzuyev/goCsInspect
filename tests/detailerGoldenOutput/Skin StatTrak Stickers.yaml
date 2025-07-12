@@ -1,0 +1,101 @@
+item:
+    accountid: 0
+    itemid: 44816452463
+    defindex: 9
+    paintindex: 1206
+    rarity: 6
+    quality: 9
+    paintwear: 1024300654
+    paintseed: 953
+    killeaterscoretype: 0
+    killeatervalue: 54
+    customname: ""
+    inventory: 40
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers:
+        - slot: 0
+          stickerid: 4983
+          wear: 0
+          scale: 0
+          rotation: -90
+          tintid: 0
+          offsetx: 0.022147745
+          offsety: 0.0029743314
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: stockh2021_team_evl_holo
+          material: Holo
+          name: Sticker | Evil Geniuses (Holo) | Stockholm 2021
+        - slot: 3
+          stickerid: 6016
+          wear: 0
+          scale: 0
+          rotation: -42
+          tintid: 0
+          offsetx: 0.20414282
+          offsety: 0.07944468
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: rio2022_team_mouz_gold
+          material: Gold
+          name: Sticker | MOUZ (Gold) | Rio 2022
+        - slot: 3
+          stickerid: 7284
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0.07931936
+          offsety: 0.06176564
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: cph2024_team_cplx_holo
+          material: Holo
+          name: Sticker | Complexity Gaming (Holo) | Copenhagen 2024
+        - slot: 3
+          stickerid: 6694
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0.033233702
+          offsety: 0.064612746
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: paris2023_team_cplx_holo
+          material: Holo
+          name: Sticker | Complexity Gaming (Holo) | Paris 2023
+        - slot: 3
+          stickerid: 7312
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: -0.0047016516
+          offsety: 0.06625104
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: cph2024_team_gl_holo
+          material: Holo
+          name: Sticker | GamerLegion (Holo) | Copenhagen 2024
+    keychains: []
+    floatvalue: 0.03456728905439377
+    minfloat: "0"
+    maxfloat: "1"
+    itemname: Printstream
+    qualityname: StatTrak™
+    weapontype: AWP
+    rarityname: Covert
+    wearname: Factory New
+    fullitemname: StatTrak™ AWP | Printstream (Factory New)
+err: null

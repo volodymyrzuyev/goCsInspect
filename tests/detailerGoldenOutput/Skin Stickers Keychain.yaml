@@ -1,0 +1,101 @@
+item:
+    accountid: 0
+    itemid: 44417931234
+    defindex: 7
+    paintindex: 302
+    rarity: 6
+    quality: 4
+    paintwear: 1028819163
+    paintseed: 387
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 48
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers:
+        - slot: 0
+          stickerid: 666
+          wear: 0.23460516
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: eslcologne2015_team_clg_foil
+          material: Foil
+          name: Sticker | Counter Logic Gaming (Foil) | Cologne 2015
+        - slot: 1
+          stickerid: 1338
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: cologne2016_team_liq_holo
+          material: Holo
+          name: Sticker | Team Liquid (Holo) | Cologne 2016
+        - slot: 2
+          stickerid: 140
+          wear: 0.20677716
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: cologne2014_epsilonesports
+          material: Paper
+          name: Sticker | Epsilon eSports | Cologne 2014
+        - slot: 3
+          stickerid: 260
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: drugwarveteran
+          material: Paper
+          name: Sticker | Drug War Veteran
+    keychains:
+        - slot: 0
+          stickerid: 1
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 24.17532
+          offsety: 0.31357658
+          offsetz: 2.541658
+          pattern: 86000
+          highlightreel: 0
+          codename: kc_missinglink_ava
+          material: ""
+          name: Charm | Lil' Ava
+    floatvalue: 0.05140004679560661
+    minfloat: "0"
+    maxfloat: "0.9"
+    itemname: Vulcan
+    qualityname: Unique
+    weapontype: AK-47
+    rarityname: Covert
+    wearname: Factory New
+    fullitemname: AK-47 | Vulcan (Factory New)
+err: null

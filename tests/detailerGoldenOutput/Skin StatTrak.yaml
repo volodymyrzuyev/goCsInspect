@@ -1,0 +1,31 @@
+item:
+    accountid: 0
+    itemid: 44158728090
+    defindex: 9
+    paintindex: 1206
+    rarity: 6
+    quality: 9
+    paintwear: 1027111819
+    paintseed: 93
+    killeaterscoretype: 0
+    killeatervalue: 54
+    customname: ""
+    inventory: 253
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers: []
+    keychains: []
+    floatvalue: 0.045039694756269455
+    minfloat: "0"
+    maxfloat: "1"
+    itemname: Printstream
+    qualityname: StatTrak™
+    weapontype: AWP
+    rarityname: Covert
+    wearname: Factory New
+    fullitemname: StatTrak™ AWP | Printstream (Factory New)
+err: null

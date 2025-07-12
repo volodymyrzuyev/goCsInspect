@@ -1,0 +1,45 @@
+item:
+    accountid: 0
+    itemid: 44360148598
+    defindex: 4726
+    paintindex: 0
+    rarity: 6
+    quality: 4
+    paintwear: 0
+    paintseed: 0
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 100
+    origin: 23
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers:
+        - slot: 1
+          stickerid: 4560
+          wear: 0
+          scale: 1.0963718
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 0
+          highlightreel: 0
+          codename: patch_wildfire
+          material: ""
+          name: Patch | Wildfire
+    keychains: []
+    floatvalue: 0
+    minfloat: ""
+    maxfloat: ""
+    itemname: Sir Bloody Miami Darryl | The Professionals
+    qualityname: Unique
+    weapontype: Agent
+    rarityname: Master
+    wearname: ""
+    fullitemname: Sir Bloody Miami Darryl | The Professionals
+err: null

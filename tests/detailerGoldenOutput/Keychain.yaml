@@ -1,0 +1,45 @@
+item:
+    accountid: 0
+    itemid: 45048018784
+    defindex: 1355
+    paintindex: 0
+    rarity: 6
+    quality: 4
+    paintwear: 0
+    paintseed: 0
+    killeaterscoretype: 0
+    killeatervalue: 0
+    customname: ""
+    inventory: 3221225482
+    origin: 23
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers: []
+    keychains:
+        - slot: 0
+          stickerid: 30
+          wear: 0
+          scale: 0
+          rotation: 0
+          tintid: 0
+          offsetx: 0
+          offsety: 0
+          offsetz: 0
+          pattern: 30299
+          highlightreel: 0
+          codename: kc_wpn_tknife_gold
+          material: ""
+          name: Charm | Baby Karat T
+    floatvalue: 0
+    minfloat: ""
+    maxfloat: ""
+    itemname: Baby Karat T
+    qualityname: Unique
+    weapontype: Charm
+    rarityname: Extraordinary
+    wearname: ""
+    fullitemname: Charm | Baby Karat T
+err: null

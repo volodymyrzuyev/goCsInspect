@@ -1,0 +1,31 @@
+item:
+    accountid: 0
+    itemid: 24514899689
+    defindex: 500
+    paintindex: 569
+    rarity: 6
+    quality: 3
+    paintwear: 1017758561
+    paintseed: 750
+    killeaterscoretype: 0
+    killeatervalue: 740
+    customname: ""
+    inventory: 90
+    origin: 8
+    questid: 0
+    dropreason: 0
+    musicindex: 0
+    entindex: 0
+    petindex: 0
+    stickers: []
+    keychains: []
+    floatvalue: 0.020723046734929085
+    minfloat: "0"
+    maxfloat: "0.08"
+    itemname: Gamma Doppler
+    qualityname: ★
+    weapontype: Bayonet
+    rarityname: Covert
+    wearname: Factory New
+    fullitemname: ★ StatTrak™ Bayonet | Gamma Doppler (Factory New)
+err: null
