@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log/slog"
 	"testing"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
@@ -36,6 +37,8 @@ func TestFetch(t *testing.T) {
 	protos := testdata.GetTestProtoData()
 	params := testdata.GetInspectParams()
 
+	s := Sqlite{l: slog.New(slog.DiscardHandler)}
+
 	for name, proto := range protos {
 
 		t.Run(name, func(t *testing.T) {
@@ -48,7 +51,7 @@ func TestFetch(t *testing.T) {
 			stickers := getModDBItem(proto.GetStickers())
 			chains := getModDBItem(proto.GetKeychains())
 
-			newProto, err := assembleItem(sqlc.Item(dbItem), chains, stickers)
+			newProto, err := s.assembleItem(sqlc.Item(dbItem), chains, stickers)
 
 			assert.Nil(t, nil, "should be no err")
 			if err != nil {

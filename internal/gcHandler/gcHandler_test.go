@@ -1,7 +1,6 @@
 package gcHandler
 
 import (
-	"io"
 	"log/slog"
 	"testing"
 	"time"
@@ -12,12 +11,12 @@ import (
 )
 
 func TestStoreResponse(t *testing.T) {
-	slog.SetDefault(slog.New(slog.NewTextHandler(io.Discard, nil)))
+	l := slog.New(slog.DiscardHandler)
 
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(10 * time.Second)
+	gcHandlerI := NewGcHandler(10*time.Second, l)
 	gc := gcHandlerI.(*gcHandler)
 
 	cleanUp := func(itemId uint64) {
@@ -57,10 +56,12 @@ func TestStoreResponse(t *testing.T) {
 }
 
 func TestGetResponse(t *testing.T) {
+	l := slog.New(slog.DiscardHandler)
+
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(1 * time.Second)
+	gcHandlerI := NewGcHandler(1*time.Second, l)
 	gc := gcHandlerI.(*gcHandler)
 
 	t.Run("Response Received Before Data Requested", func(t *testing.T) {

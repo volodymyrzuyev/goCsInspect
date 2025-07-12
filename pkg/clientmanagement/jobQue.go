@@ -20,46 +20,48 @@ type job struct {
 }
 
 type jobQue struct {
-	mu        sync.Mutex
-	que       *queue.Queue
+	mu  sync.Mutex
+	que *queue.Queue
+
 	clientQue *clientQue
+	l         *slog.Logger
 }
 
-func newJobQue(c *clientQue) *jobQue {
-	q := &jobQue{que: queue.New(), clientQue: c}
+func newJobQue(c *clientQue, l *slog.Logger) *jobQue {
+	q := &jobQue{que: queue.New(), clientQue: c, l: l.WithGroup("JobQue")}
 
 	go q.runQue()
 
 	return q
 }
 
-func (q *jobQue) registerJob(proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) <-chan response {
+func (j *jobQue) registerJob(proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) <-chan response {
 	newJob := job{
 		requestProto: proto,
 		responseCh:   make(chan response),
 	}
 
-	q.mu.Lock()
-	q.que.Enqueue(newJob)
-	q.mu.Unlock()
-	slog.Debug("job added", "item_id", proto.GetParamA())
+	j.mu.Lock()
+	j.que.Enqueue(newJob)
+	j.mu.Unlock()
+	j.l.Debug("job added", "item_id", proto.GetParamA())
 
 	return newJob.responseCh
 }
 
 const queIdleSleepTime = 75 * time.Millisecond
 
-func (q *jobQue) runQue() {
+func (j *jobQue) runQue() {
 	for {
-		q.mu.Lock()
-		if q.que.Len() > 0 {
-			j := q.que.Dequeue().(job)
-			q.mu.Unlock()
-			slog.Debug("processing job", "item_id", j.requestProto.GetParamA())
-			q.clientQue.runJob(j)
+		j.mu.Lock()
+		if j.que.Len() > 0 {
+			job := j.que.Dequeue().(job)
+			j.mu.Unlock()
+			j.l.Debug("processing job", "item_id", job.requestProto.GetParamA())
+			j.clientQue.runJob(job)
 
 		} else {
-			q.mu.Unlock()
+			j.mu.Unlock()
 			time.Sleep(queIdleSleepTime)
 		}
 	}

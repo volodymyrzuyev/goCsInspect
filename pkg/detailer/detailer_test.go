@@ -2,6 +2,7 @@ package detailer
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
@@ -55,7 +56,11 @@ func getExpected() map[string]*expected {
 }
 
 func TestDetailSkin(t *testing.T) {
-	detailer := NewDetailer(config.GetEnglishFile(), config.GetGameItems())
+	l := slog.New(slog.DiscardHandler)
+	detailer, err := NewDetailer(config.GetEnglishFile(), config.GetGameItems(), l)
+	if err != nil {
+		t.Fatalf("could not create detailer %v", err)
+	}
 
 	tests := testdata.GetTestProtoData()
 	expected := getExpected()

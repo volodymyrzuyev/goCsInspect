@@ -8,6 +8,14 @@ import (
 	"github.com/charmbracelet/log"
 )
 
+type Logger interface {
+	Debug(msg any, keyvals ...any)
+	Info(msg any, keyvals ...any)
+	Warn(msg any, keyvals ...any)
+	Error(msg any, keyvals ...any)
+	SetPrefix(string)
+}
+
 func NewHandler(logLevel slog.Level, writer io.Writer) *log.Logger {
 	var lvl log.Level
 	switch logLevel {
@@ -22,9 +30,7 @@ func NewHandler(logLevel slog.Level, writer io.Writer) *log.Logger {
 	}
 
 	logger := log.NewWithOptions(writer, log.Options{
-		ReportCaller:    true,
 		ReportTimestamp: true,
-		CallerFormatter: log.ShortCallerFormatter,
 		TimeFormat:      time.TimeOnly,
 		Level:           lvl,
 	})

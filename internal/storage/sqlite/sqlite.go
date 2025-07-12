@@ -18,25 +18,35 @@ import (
 
 type Sqlite struct {
 	dbPath string
-	db     *sql.DB
-	q      *sqlc.Queries
+	l      *slog.Logger
+
+	db *sql.DB
+	q  *sqlc.Queries
 }
 
-func NewSQLiteStore(dbPath string) storage.Storage {
+func NewSQLiteStore(dbPath string, l *slog.Logger) (storage.Storage, error) {
+	l = l.WithGroup("Storage")
+
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {
-		panic(err)
+		l.Error("could not open db", "error", err)
+		return nil, err
 	}
 
-	migrateDB("sqlite://" + dbPath)
+	err = migrateDB("sqlite://"+dbPath, l)
+	if err != nil {
+		return nil, err
+	}
 
 	q := sqlc.New(db)
 
 	return &Sqlite{
 		dbPath: dbPath,
-		db:     db,
-		q:      q,
-	}
+		l:      l,
+
+		db: db,
+		q:  q,
+	}, nil
 }
 
 func getDBProto(params t.InspectParameters, proto *proto.CEconItemPreviewDataBlock) sqlc.InsertItemParams {
@@ -101,7 +111,7 @@ func (s *Sqlite) StoreItem(ctx context.Context, params t.InspectParameters, prot
 
 	dbTX, err := s.db.Begin()
 	if err != nil {
-		slog.Error("Error when beggining db tx", "error", err)
+		s.l.Error("could not start transaction", "error", err)
 		return errors.ErrDB
 	}
 	defer dbTX.Rollback()
@@ -109,21 +119,21 @@ func (s *Sqlite) StoreItem(ctx context.Context, params t.InspectParameters, prot
 	tx := s.q.WithTx(dbTX)
 
 	if err = tx.InsertItem(ctx, dbItem); err != nil {
-		slog.Error("Error when adding proto to db", "error", err)
+		s.l.Error("error storing item", "error", err)
 		return errors.ErrInsertItem
 	}
 
 	for _, sticker := range stickers {
 		modId, err := tx.InsertMod(ctx, sticker)
 		if err != nil {
-			slog.Error("Error when inserting sticker", "error", err)
+			s.l.Error("error storing stickers", "error", err)
 			return errors.ErrInsertSticker
 		}
 		modJoinTableStorer.Modid = modId
 
 		err = tx.InsertModSticker(ctx, modJoinTableStorer)
 		if err != nil {
-			slog.Error("Error when inserting sticker", "error", err)
+			s.l.Error("error storing stickers", "error", err)
 			return errors.ErrInsertSticker
 		}
 	}
@@ -131,14 +141,14 @@ func (s *Sqlite) StoreItem(ctx context.Context, params t.InspectParameters, prot
 	for _, chain := range chains {
 		modId, err := tx.InsertMod(ctx, chain)
 		if err != nil {
-			slog.Error("Error when inserting keychain", "error", err)
+			s.l.Error("error storing keychains", "error", err)
 			return errors.ErrInsertKeychain
 		}
 		modJoinTableStorer.Modid = modId
 
 		err = tx.InsertModChain(ctx, sqlc.InsertModChainParams(modJoinTableStorer))
 		if err != nil {
-			slog.Error("Error when inserting keychain", "error", err)
+			s.l.Error("error storing keychains", "error", err)
 			return errors.ErrInsertKeychain
 		}
 	}
@@ -198,10 +208,10 @@ func parseDbModToProto(mods []sqlc.Mod) []*proto.CEconItemPreviewDataBlock_Stick
 	return protos
 }
 
-func assembleItem(dbItem sqlc.Item, chains, stickers []sqlc.Mod) (*proto.CEconItemPreviewDataBlock, error) {
+func (s *Sqlite) assembleItem(dbItem sqlc.Item, chains, stickers []sqlc.Mod) (*proto.CEconItemPreviewDataBlock, error) {
 	item, err := converDBItemToProto(dbItem)
 	if err != nil {
-		slog.Error("Got error when getting dbItem", "error", err)
+		s.l.Error("not able to retrieve item", "error", err)
 		return nil, errors.ErrFetchItem
 	}
 
@@ -221,21 +231,23 @@ func (s *Sqlite) GetItem(ctx context.Context, params t.InspectParameters) (*prot
 
 	dbItem, err := s.q.GetItem(ctx, itemDbParams)
 	if err != nil {
-		slog.Error("Got error when getting dbItem", "error", err)
+		if err != sql.ErrNoRows {
+			s.l.Error("not able to retrieve item", "error", err)
+		}
 		return nil, errors.ErrFetchItem
 	}
 
 	stickers, err := s.q.GetStickers(ctx, sqlc.GetStickersParams(itemDbParams))
 	if err != nil {
-		slog.Error("Got error when getting stickers", "error", err)
+		s.l.Error("not able to retrieve stickers", "error", err)
 		return nil, errors.ErrFetchSticker
 	}
 
 	chains, err := s.q.GetChains(ctx, sqlc.GetChainsParams(itemDbParams))
 	if err != nil {
-		slog.Error("Got error when getting keychain", "error", err)
+		s.l.Error("not able to retrieve keychains", "error", err)
 		return nil, errors.ErrFetchKeychain
 	}
 
-	return assembleItem(dbItem, chains, stickers)
+	return s.assembleItem(dbItem, chains, stickers)
 }

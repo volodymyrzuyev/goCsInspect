@@ -43,9 +43,9 @@ func main() {
 		Password:     os.Getenv("GenDetailerTestDataPassword"),
 	}
 
-	gcHandler := gcHandler.NewGcHandler(config.TimeOutDuration)
+	gcHandler := gcHandler.NewGcHandler(config.TimeOutDuration, log)
 
-	client, err := client.NewInspectClient(config.DefaultClientConfig, gcHandler, dance)
+	client, err := client.NewInspectClient(config.DefaultClientConfig, gcHandler, dance, log)
 	if err != nil {
 		slog.Error("Can't create client")
 		panic(err)

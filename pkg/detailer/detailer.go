@@ -20,33 +20,42 @@ type Detailer interface {
 
 type detailer struct {
 	allItems *csgo.Csgo
+	l        *slog.Logger
 }
 
-func NewDetailer(langugeFile, gameItems string) Detailer {
+func NewDetailer(langugeFile, gameItems string, l *slog.Logger) (Detailer, error) {
+	l = l.WithGroup("Detailer")
+
 	languageData, err := parser.Parse(langugeFile)
 	if err != nil {
-		panic(err)
+		l.Error("could not parser language file", "error", err)
+		return nil, err
 	}
 
 	itemData, err := parser.Parse(gameItems)
 	if err != nil {
-		panic(err)
+		l.Error("could not parser item file", "error", err)
+		return nil, err
 	}
 
 	allItems, err := csgo.New(languageData, itemData)
 	if err != nil {
-		panic(err)
+		l.Error("could not parser cs files", "error", err)
+		return nil, err
 	}
 
 	return &detailer{
 		allItems: allItems,
-	}
+		l:        l,
+	}, nil
 }
 
 func (d *detailer) detailModificationsStickers(item *item.Item) error {
 	for _, sticker := range item.Stickers {
+
 		stickerSubtype, ok := d.allItems.AllStickerItems[int(sticker.StickerId)]
 		if !ok {
+			d.l.Error("unknown sticker id", "id", sticker.StickerId)
 			return errors.ErrUnknownStickerModifier
 		}
 
@@ -64,7 +73,7 @@ func (d *detailer) detailModificationsStickers(item *item.Item) error {
 			sticker.CodeName = s.Id
 			sticker.Name = fmt.Sprintf("Patch | %s", s.Name)
 		default:
-			slog.Debug("Unknown sticker id", "id", sticker.StickerId)
+			d.l.Error("unknown sticker id", "id", sticker.StickerId)
 			return errors.ErrUnknownStickerModifier
 		}
 	}
@@ -74,9 +83,10 @@ func (d *detailer) detailModificationsStickers(item *item.Item) error {
 
 func (d *detailer) detailModificationsChains(item *item.Item) error {
 	for _, chainMod := range item.Keychains {
+
 		chain, ok := d.allItems.Keychains[int(chainMod.StickerId)]
 		if !ok {
-			slog.Debug("Unknown keychain id", "id", chainMod.StickerId)
+			d.l.Debug("unknown keychain id", "id", chainMod.StickerId)
 			return errors.ErrUnknownStickerModifier
 		}
 
@@ -129,12 +139,10 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)
 
 	if err := d.detailModificationsStickers(item); err != nil {
-		slog.Error("Unknown sticker", "proto", fmt.Sprintf("%+v", proto))
 		return nil, err
 	}
 
 	if err := d.detailModificationsChains(item); err != nil {
-		slog.Error("Unknown keychain", "proto", fmt.Sprintf("%+v", proto))
 		return nil, err
 	}
 
@@ -142,7 +150,7 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 
 	rarity, ok := d.allItems.Rarities[int(proto.GetRarity())]
 	if !ok {
-		slog.Error("Rarity not found", "item_id", proto.GetItemid(), "rarity_index", proto.GetRarity())
+		d.l.Error("rarity not found", "rarity_index", proto.GetRarity())
 		return nil, errors.ErrUnknownRarity
 	}
 
@@ -186,14 +194,14 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 			case musicDefIndex:
 				music, ok := d.allItems.Musickits[int(proto.GetMusicindex())]
 				if !ok {
+					d.l.Error("unknown music kit", "music_index", proto.GetMusicindex())
 					return nil, errors.ErrUnknownMusicIndex
 				}
 				item.ItemName = music.Name
 				item.FullItemName = fmt.Sprintf("%s | %s", item.WeaponType, item.ItemName)
 
 			default:
-				slog.Debug("Unexpected def_index, details won't be populated",
-					"def_index", proto.GetDefindex())
+				d.l.Warn("unexpected def_index, details won't be populated", "def_index", proto.GetDefindex())
 			}
 
 		case *csgo.Collectible:
@@ -209,17 +217,17 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 			item.FullItemName = itemType.Name
 
 		default:
-			slog.Debug("Unexpected def_index, details won't be populated",
-				"def_index", proto.GetDefindex())
+			d.l.Warn("unexpected def_index, details won't be populated", "def_index", proto.GetDefindex())
 
 		}
 	} else {
-		slog.Error("Unknown def_index", "def_index", proto.GetDefindex())
+		slog.Error("unknown def_index", "def_index", proto.GetDefindex())
 		return nil, errors.ErrUnknownDefIndex
 	}
 	if proto.GetPaintindex() != defaultPaintKitIndex {
 		paintKit, ok := d.allItems.Paintkits[int(proto.GetPaintindex())]
 		if !ok {
+			slog.Error("unknown paintIndex", "paintIndex", proto.GetPaintindex())
 			return nil, errors.ErrUnknownPaintIndex
 		}
 
@@ -237,8 +245,7 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 
 	quality, ok := d.allItems.Qualities[int(proto.GetQuality())]
 	if !ok {
-		slog.Error("Quality not found",
-			"item_id", proto.GetItemid(), "quality_index", proto.GetQuality())
+		slog.Error("unknown quality", "quality_index", proto.GetQuality())
 		return nil, errors.ErrUnknownRarity
 	}
 

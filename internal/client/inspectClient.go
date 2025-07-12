@@ -37,11 +37,12 @@ type inspectClient struct {
 	creds     types.Credentials
 	config    config.ClientConfig
 	gcHandler gcHandler.GcHandler
+	l         *slog.Logger
 }
 
-func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler, creds types.Credentials) (InspectClient, error) {
-	_, err := creds.GenerateLogOnDetails()
-	if err != nil {
+func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler, creds types.Credentials, l *slog.Logger) (InspectClient, error) {
+	if _, err := creds.GenerateLogOnDetails(); err != nil {
+		slog.Error("invalid client credentials")
 		return nil, err
 	}
 
@@ -52,6 +53,7 @@ func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler,
 		creds:     creds,
 		config:    config,
 		gcHandler: gcHandler,
+		l:         l.WithGroup(creds.Username),
 	}
 
 	return newClient, nil
@@ -71,7 +73,7 @@ func (c *inspectClient) Username() string {
 }
 
 func (c *inspectClient) LogOff() {
-	slog.Info("Stopping client", "username", c.creds.Username)
+	c.l.Info("stopping client")
 	if !c.IsLoggedIn() {
 		return
 	}
@@ -81,7 +83,7 @@ func (c *inspectClient) LogOff() {
 
 const csAppID = 730
 
-func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogOnDetails, exitCh <-chan bool, loginCh chan<- error) {
+func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogOnDetails, exitCh <-chan bool, loginCh chan<- error, l *slog.Logger) {
 	auth := newAuth(client, &creds, loginCh)
 	serverList := newServerList(client, "servers/list.json")
 	debug := newDebug(creds.Username, c.DebugLogger, c.DebugLogger)
@@ -94,12 +96,11 @@ func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogO
 	for {
 		select {
 		case <-exitCh:
-			slog.Info("Stopping client loop", "username", auth.details.Username)
+			l.Info("stopping client loop")
 			return
 		case event, ok := <-client.Events():
 			if !ok {
-				slog.Debug("Client channel disconnected, leaving client loop",
-					"username", auth.details.Username)
+				l.Error("leaving client loop")
 				return
 			}
 
@@ -111,8 +112,7 @@ func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogO
 
 			switch e := event.(type) {
 			case error:
-				slog.Debug("Steam client event error",
-					"username", auth.details.Username, "error", e.Error())
+				l.Debug("client event error", "error", e.Error())
 
 			case *steam.LoggedOnEvent:
 				client.Social.SetPersonaState(steamlang.EPersonaState_Online)
@@ -123,38 +123,36 @@ func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogO
 }
 
 func (c *inspectClient) LogIn() error {
-	slog.Debug("Login attempt", "username", c.creds.Username)
+	c.l.Debug("Login attempt", "username", c.creds.Username)
 	logOnDetails, err := c.creds.GenerateLogOnDetails()
 	if err != nil {
-		slog.Error("Invalid credentials",
-			"username", c.creds.Username, "error", err.Error())
+		c.l.Error("invalid client credentials", "error", err.Error())
 		return err
 	}
 
 	logIn := make(chan error)
 
-	go runClientLoop(c.config, c.client, logOnDetails, c.exitCh, logIn)
+	go runClientLoop(c.config, c.client, logOnDetails, c.exitCh, logIn, c.l)
 
 	select {
 	case err := <-logIn:
 		if err != nil {
-			slog.Error("Client got error during connection",
-				"username", c.creds.Username, "error", err.Error())
+			c.l.Error("error during steam login", "error", err.Error())
 			return err
 		}
-		slog.Info("Client login complete", "username", c.creds.Username)
+		c.l.Info("login complete, client ready")
 		c.client.GC.RegisterPacketHandler(c.gcHandler)
 		c.lastUsed = time.Now().Add(-c.config.RequestCooldown * 2)
 		return nil
 	case <-time.After(c.config.TimeOutDuration):
 		c.LogOff()
-		slog.Error("Client timed out during login", "username", c.creds.Username)
+		c.l.Error("timed out during login")
 		return errors.ErrClientUnableToConnect
 	}
 }
 
 func (c *inspectClient) Reconnect() error {
-	slog.Warn("Relogin into client", "username", c.creds.Username)
+	c.l.Info("relogin attempt")
 	c.LogOff()
 	return c.LogIn()
 }
@@ -162,25 +160,20 @@ func (c *inspectClient) Reconnect() error {
 const inspectRequestProtoID = 9156
 
 func (c *inspectClient) InspectItem(params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) (*protobuf.CEconItemPreviewDataBlock, error) {
-	slog.Debug("Client requested to inspect skin",
-		"username", c.creds.Username,
-		"lastUsed", c.lastUsed.Format(time.TimeOnly),
-		"proto", fmt.Sprintf("%+v", params))
+	c.l.Debug("item previw block requested", "proto", fmt.Sprintf("%+v", params))
 
 	if params == nil {
-		slog.Error("Invalid inspect proto", "proto", fmt.Sprintf("%+v", params))
+		c.l.Error("invalid itemp previw block request params")
 		return nil, errors.ErrInvalidInspectLink
 	}
 
 	if !c.IsAvailable() {
-		slog.Error("Client not available to inspect skin",
-			"username", c.creds.Username)
+		c.l.Error("client not available")
 		return nil, errors.ErrClientUnavailable
 	}
 
 	proto := gamecoordinator.NewGCMsgProtobuf(csAppID, uint32(inspectRequestProtoID), params)
-	slog.Debug("Sending inspect request",
-		"username", c.creds.Username, "proto", fmt.Sprintf("%+v", params))
+	c.l.Debug("sent item preview block packet")
 	c.client.GC.Write(proto)
 	c.lastUsed = time.Now()
 

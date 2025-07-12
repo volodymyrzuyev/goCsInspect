@@ -10,13 +10,15 @@ import (
 )
 
 type clientQue struct {
-	mu             sync.Mutex
-	que            *queue.Queue
+	mu  sync.Mutex
+	que *queue.Queue
+
 	clientCooldown time.Duration
+	l              *slog.Logger
 }
 
-func newClientQue(c time.Duration) *clientQue {
-	return &clientQue{que: queue.New(), clientCooldown: c}
+func newClientQue(c time.Duration, l *slog.Logger) *clientQue {
+	return &clientQue{que: queue.New(), clientCooldown: c, l: l.WithGroup("ClientQue")}
 }
 
 func (c *clientQue) runJob(j job) {
@@ -29,14 +31,14 @@ func (c *clientQue) runJob(j job) {
 		c.mu.Unlock()
 
 		if cli.IsAvailable() {
-			slog.Debug("Reqiesting response proto", "item_id", j.requestProto.GetParamA(), "client", cli.Username())
+			c.l.Debug("requesting preview block", "item_id", j.requestProto.GetParamA(), "client", cli.Username())
 			resp, err := cli.InspectItem(j.requestProto)
 			j.responseCh <- response{responseProto: resp, err: err}
 			return
 		}
 	}
 
-	slog.Debug("no clients to resolve the job, sleeping", "item_id", j.requestProto.GetParamA())
+	c.l.Debug("no clients to resolve the job, sleeping", "item_id", j.requestProto.GetParamA())
 	time.Sleep(c.clientCooldown)
 	c.runJob(j)
 }
