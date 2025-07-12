@@ -10,7 +10,7 @@ tests/responseProtos/
 tests/inspectParams/
 
 # code gen
-internal/storage/sql/sqlc
+internal/storage/*/sql/sqlc
 
 # build
 bin/
