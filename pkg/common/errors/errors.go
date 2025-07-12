@@ -11,7 +11,8 @@ var (
 
 // clientManager
 var (
-	ErrNoAvailableClients = errors.New("no available clients")
+	ErrNoAvailableClients   = errors.New("no available clients")
+	ErrInvalidManagerConfig = errors.New("detailer and storage are needed")
 )
 
 // Credentials

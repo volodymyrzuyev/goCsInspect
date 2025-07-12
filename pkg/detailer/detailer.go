@@ -64,6 +64,7 @@ func (d *detailer) detailModificationsStickers(item *item.Item) error {
 			sticker.CodeName = s.Id
 			sticker.Name = fmt.Sprintf("Patch | %s", s.Name)
 		default:
+			slog.Debug("Unknown sticker id", "id", sticker.StickerId)
 			return errors.ErrUnknownStickerModifier
 		}
 	}
@@ -75,6 +76,7 @@ func (d *detailer) detailModificationsChains(item *item.Item) error {
 	for _, chainMod := range item.Keychains {
 		chain, ok := d.allItems.Keychains[int(chainMod.StickerId)]
 		if !ok {
+			slog.Debug("Unknown keychain id", "id", chainMod.StickerId)
 			return errors.ErrUnknownStickerModifier
 		}
 
@@ -127,12 +129,12 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)
 
 	if err := d.detailModificationsStickers(item); err != nil {
-		slog.Error("Unknown sticker", "proto", proto)
+		slog.Error("Unknown sticker", "proto", fmt.Sprintf("%+v", proto))
 		return nil, err
 	}
 
 	if err := d.detailModificationsChains(item); err != nil {
-		slog.Error("Unknown sticker", "proto", proto)
+		slog.Error("Unknown keychain", "proto", fmt.Sprintf("%+v", proto))
 		return nil, err
 	}
 
