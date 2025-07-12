@@ -3,6 +3,7 @@ cmd/test/
 debug/
 game_files/
 .env
+database/
 
 
 # test data
