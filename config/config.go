@@ -11,7 +11,7 @@ import (
 
 var (
 	TimeOutDuration = 10 * time.Second
-	RequestCooldown = 10 * time.Second
+	RequestCooldown = 2 * time.Second
 
 	// Use relative paths from project root
 	EnglishFile = "game_files/csgo_english.txt"

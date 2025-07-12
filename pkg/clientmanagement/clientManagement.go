@@ -1,8 +1,10 @@
-package clientManagement
+package clientmanagement
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
@@ -14,20 +16,10 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 )
 
-type clientList struct {
-	clients  []client.InspectClient
-	lastUsed int
-}
-
-func (c *clientList) getNextClient() client.InspectClient {
-	c.lastUsed++
-	c.lastUsed = c.lastUsed % len(c.clients)
-	return c.clients[c.lastUsed]
-}
-
 type ClientManager struct {
 	gcHandler  gcHandler.GcHandler
-	clientList *clientList
+	clientList *clientQue
+	jobQue     *jobQue
 
 	storage      storage.Storage
 	clientConfig config.ClientConfig
@@ -41,9 +33,11 @@ func NewClientManager(detailer detailer.Detailer, clientConfig config.ClientConf
 		return nil, errors.ErrInvalidManagerConfig
 	}
 
+	clientList := newClientQue(clientConfig.TimeOutDuration)
 	return &ClientManager{
 		gcHandler:  gcHandler.NewGcHandler(clientConfig.TimeOutDuration),
-		clientList: &clientList{clients: make([]client.InspectClient, 0)},
+		clientList: clientList,
+		jobQue:     newJobQue(clientList),
 
 		storage:      storage,
 		clientConfig: clientConfig,
@@ -62,8 +56,7 @@ func (c *ClientManager) AddClient(credentials types.Credentials) error {
 		return err
 	}
 
-	c.clientList.clients = append(c.clientList.clients, newClient)
-
+	c.clientList.addClient(newClient)
 	return nil
 }
 
@@ -74,20 +67,7 @@ func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item,
 		return c.detailer.DetailProto(proto)
 	}
 
-	var curClient client.InspectClient
-	for range len(c.clientList.clients) {
-		curClient = c.clientList.getNextClient()
-		if !curClient.IsLoggedIn() {
-			curClient.Reconnect()
-		}
-
-		if curClient.IsAvailable() {
-			break
-		}
-
-		curClient = nil
-	}
-	if curClient == nil {
+	if c.clientList.len() == 0 {
 		slog.Error("No available clients")
 		return nil, errors.ErrNoAvailableClients
 	}
@@ -98,11 +78,19 @@ func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item,
 		return nil, err
 	}
 
-	responseProto, err := curClient.InspectItem(inspectProto)
-	if err != nil {
-		return nil, err
-	}
-	c.storage.StoreItem(context.TODO(), params, responseProto)
+	responseChan := c.jobQue.registerJob(inspectProto)
+	select {
+	case resp := <-responseChan:
+		if resp.err != nil {
+			return nil, err
+		}
+		err = c.storage.StoreItem(context.TODO(), params, resp.responseProto)
+		if err != nil {
+			slog.Error("Error string item", "inspect_params", fmt.Sprintf("%+v", params), "error", err)
+		}
+		return c.detailer.DetailProto(resp.responseProto)
 
-	return c.detailer.DetailProto(responseProto)
+	case <-time.After(c.clientList.clientCooldown * 25):
+		return nil, errors.ErrClientTimeout
+	}
 }

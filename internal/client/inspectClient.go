@@ -19,6 +19,7 @@ import (
 type InspectClient interface {
 	IsLoggedIn() bool
 	IsAvailable() bool
+	Username() string
 
 	LogOff()
 	LogIn() error
@@ -59,9 +60,14 @@ func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler,
 func (c *inspectClient) IsLoggedIn() bool {
 	return c.client.Connected()
 }
+
 func (c *inspectClient) IsAvailable() bool {
 	willBeAvaliable := c.lastUsed.Add(c.config.RequestCooldown)
 	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
+}
+
+func (c *inspectClient) Username() string {
+	return c.creds.Username
 }
 
 func (c *inspectClient) LogOff() {
