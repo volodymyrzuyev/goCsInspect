@@ -14,3 +14,6 @@ run:
 
 test:
 	GOLANG_PROTOBUF_REGISTRATION_CONFLICT=ignore go test ./... -v
+
+gen_sql:
+	cd internal/storage/sqlite/sql && sqlc generate

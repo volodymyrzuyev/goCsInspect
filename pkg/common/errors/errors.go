@@ -38,3 +38,19 @@ var (
 	ErrUnknownStickerModifier  = errors.Join(ErrUnknownProtoValue, errors.New("unknown sticker"))
 	ErrUnknownKeychainModifier = errors.Join(ErrUnknownProtoValue, errors.New("unknown sticker"))
 )
+
+// storage
+
+var (
+	ErrDB = errors.New("database error")
+
+	ErrDBInsert       = errors.Join(ErrDB, errors.New("err inserting"))
+	ErrInsertItem     = errors.Join(ErrDBInsert, errors.New("err inserting item"))
+	ErrInsertSticker  = errors.Join(ErrDBInsert, errors.New("err inserting sticker"))
+	ErrInsertKeychain = errors.Join(ErrDBInsert, errors.New("err inserting keychain"))
+
+	ErrDBFetch       = errors.Join(ErrDB, errors.New("err fetching"))
+	ErrFetchItem     = errors.Join(ErrDBFetch, errors.New("err fetching item"))
+	ErrFetchSticker  = errors.Join(ErrDBFetch, errors.New("err fetching sticker"))
+	ErrFetchKeychain = errors.Join(ErrDBFetch, errors.New("err fetching keychain"))
+)

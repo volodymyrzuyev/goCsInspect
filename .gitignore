@@ -1,9 +1,16 @@
+# dev files
 cmd/test/
 debug/
-bin/
 game_files/
 .env
 
 
+# test data
 tests/responseProtos/
 tests/inspectParams/
+
+# code gen
+internal/storage/sql/sqlc
+
+# build
+bin/
