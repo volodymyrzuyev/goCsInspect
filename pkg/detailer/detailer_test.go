@@ -10,9 +10,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/assert/yaml"
 	"github.com/volodymyrzuyev/goCsInspect/config"
-	"github.com/volodymyrzuyev/goCsInspect/internal/testcommon"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
+	"github.com/volodymyrzuyev/goCsInspect/tests/testdata"
 )
 
 type expected struct {
@@ -57,7 +57,7 @@ func getExpected() map[string]*expected {
 func TestDetailSkin(t *testing.T) {
 	detailer := NewDetailer(config.GetEnglishFile(), config.GetGameItems())
 
-	tests := testcommon.GetTestProtoData()
+	tests := testdata.GetTestProtoData()
 	expected := getExpected()
 
 	for name, input := range tests {

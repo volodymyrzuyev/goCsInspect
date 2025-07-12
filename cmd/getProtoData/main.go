@@ -86,8 +86,12 @@ func main() {
 	for name, r := range resources {
 		time.Sleep(config.RequestCooldown + 2*time.Second)
 
-		params, _ := types.ParseInspectLink(r.InspectLink)
+		params, err := types.ParseInspectLink(r.InspectLink)
+		if err != nil {
+			slog.Error("Err parsing inspect link", "name", name)
+		}
 		requestProto, _ := params.GenerateGcRequestProto()
+
 		repProto, err := client.InspectItem(requestProto)
 		if err != nil {
 			slog.Error("Err getting skin", "error", name, "InspectLink", r.InspectLink)
@@ -95,14 +99,15 @@ func main() {
 		}
 
 		slog.Info(fmt.Sprintf("Status: Got response for (%s) %+v", name, repProto))
-		generateProtoTestCaseReflectV2(name, r, repProto)
+		storeProtos(name, r, repProto)
+		storeInspectParams(name, r, repProto, params)
 		slog.Info(fmt.Sprintf("Status: Finished (%v), %3.2f%% done!", name, float64(i)/float64(len(resources))*100))
 		i++
 	}
 }
 
-func generateProtoTestCaseReflectV2(name string, r resourceFetcher, repProto *protobuf.CEconItemPreviewDataBlock) {
-	storeLocation := path.Join(filepath.Join(dataLocation, filepath.Join("protos", name+".yaml")))
+func storeProtos(name string, r resourceFetcher, repProto *protobuf.CEconItemPreviewDataBlock) {
+	storeLocation := path.Join(filepath.Join(dataLocation, filepath.Join("responseProtos", name+".yaml")))
 	output, err := os.OpenFile(storeLocation, os.O_CREATE|os.O_RDWR, 0640)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error opening store file: %s", storeLocation))
@@ -117,6 +122,28 @@ func generateProtoTestCaseReflectV2(name string, r resourceFetcher, repProto *pr
 	encoder := yaml.NewEncoder(output)
 	encoder.SetIndent(4)
 	err = encoder.Encode(repProto)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error encoding proto %s", storeLocation))
+		panic(err)
+	}
+}
+
+func storeInspectParams(name string, r resourceFetcher, repProto *protobuf.CEconItemPreviewDataBlock, params types.InspectParameters) {
+	storeLocation := path.Join(filepath.Join(dataLocation, filepath.Join("inspectParams", name+".yaml")))
+	output, err := os.OpenFile(storeLocation, os.O_CREATE|os.O_RDWR, 0640)
+	if err != nil {
+		slog.Error(fmt.Sprintf("Error opening store file: %s", storeLocation))
+		panic(err)
+	}
+	defer output.Close()
+
+	fmt.Fprintf(output, "# inspectLink: %s\n", r.InspectLink)
+	fmt.Fprintf(output, "# tmLink: %s\n", r.TmLink)
+	fmt.Fprintf(output, "# proto: %+v\n", repProto)
+
+	encoder := yaml.NewEncoder(output)
+	encoder.SetIndent(4)
+	err = encoder.Encode(params)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error encoding proto %s", storeLocation))
 		panic(err)

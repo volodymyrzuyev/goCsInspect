@@ -1,24 +1,24 @@
-package testcommon
+package testdata
 
 import (
 	"os"
 	"path/filepath"
 	"strings"
 
-	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 	"gopkg.in/yaml.v3"
 )
 
-func GetTestProtoData() map[string]*protobuf.CEconItemPreviewDataBlock {
-	protoPath := common.GetAbsolutePath(filepath.Join("tests", "protos"))
+func GetInspectParams() map[string]types.InspectParameters {
+	protoPath := common.GetAbsolutePath(filepath.Join("tests", "inspectParams"))
 
 	fs, err := os.ReadDir(protoPath)
 	if err != nil {
 		panic(err)
 	}
 
-	ret := make(map[string]*protobuf.CEconItemPreviewDataBlock)
+	ret := make(map[string]types.InspectParameters)
 
 	for _, f := range fs {
 		if f.IsDir() {
@@ -32,13 +32,13 @@ func GetTestProtoData() map[string]*protobuf.CEconItemPreviewDataBlock {
 			panic(err)
 		}
 
-		newProto := protobuf.CEconItemPreviewDataBlock{}
-		err = yaml.Unmarshal(toParse, &newProto)
+		params := types.InspectParameters{}
+		err = yaml.Unmarshal(toParse, &params)
 		if err != nil {
 			panic(err)
 		}
 
-		ret[name] = &newProto
+		ret[name] = params
 	}
 
 	return ret

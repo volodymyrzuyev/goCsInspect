@@ -5,4 +5,5 @@ game_files/
 .env
 
 
-tests/protos/
+tests/responseProtos/
+tests/inspectParams/
