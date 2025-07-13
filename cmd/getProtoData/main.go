@@ -46,7 +46,7 @@ func main() {
 
 	gcHandler := gcHandler.NewGcHandler(log)
 
-	client, err := client.NewInspectClient(config.DefaultClientConfig, gcHandler, dance, log)
+	client, err := client.NewInspectClient(dance, config.RequestTTl, gcHandler, log)
 	if err != nil {
 		slog.Error("Can't create client")
 		panic(err)

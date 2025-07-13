@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
@@ -17,17 +17,26 @@ import (
 )
 
 type ClientManager struct {
+	clientCooldown time.Duration
+	requestTTl     time.Duration
+
+	detailer detailer.Detailer
+	storage  storage.Storage
+	l        *slog.Logger
+
 	gcHandler gcHandler.GcHandler
 	clientQue *clientQue
 	jobQue    *jobQue
-
-	storage      storage.Storage
-	clientConfig config.ClientConfig
-	detailer     detailer.Detailer
-	l            *slog.Logger
 }
 
-func NewClientManager(detailer detailer.Detailer, clientConfig config.ClientConfig, storage storage.Storage, l *slog.Logger) (*ClientManager, error) {
+func NewClientManager(
+	requestTTL time.Duration,
+	clientCooldown time.Duration,
+	detailer detailer.Detailer,
+	storage storage.Storage,
+	l *slog.Logger,
+) (*ClientManager, error) {
+
 	lcm := l.WithGroup("ClientManagment")
 
 	if detailer == nil || storage == nil {
@@ -37,23 +46,25 @@ func NewClientManager(detailer detailer.Detailer, clientConfig config.ClientConf
 	}
 
 	gcHandler := gcHandler.NewGcHandler(l)
-	clientList := newClientQue(clientConfig.TimeOutDuration, l)
+	clientList := newClientQue(clientCooldown, l)
 	jobQue := newJobQue(clientList, l)
 
 	return &ClientManager{
+		clientCooldown: clientCooldown,
+		requestTTl:     requestTTL,
+
+		l:        lcm,
+		storage:  storage,
+		detailer: detailer,
+
 		gcHandler: gcHandler,
 		clientQue: clientList,
 		jobQue:    jobQue,
-
-		storage:      storage,
-		clientConfig: clientConfig,
-		detailer:     detailer,
-		l:            lcm,
 	}, nil
 }
 
 func (c *ClientManager) AddClient(credentials types.Credentials) error {
-	newClient, err := client.NewInspectClient(c.clientConfig, c.gcHandler, credentials, c.l)
+	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler, c.l)
 	if err != nil {
 		return err
 	}
@@ -73,7 +84,7 @@ func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item,
 }
 
 func (c *ClientManager) InspectSkinWithCtx(ctx context.Context, params types.InspectParameters) (*item.Item, error) {
-	ctx, cancel := context.WithTimeout(ctx, c.clientConfig.TimeOutDuration)
+	ctx, cancel := context.WithTimeout(ctx, c.requestTTl)
 	defer cancel()
 
 	proto, err := c.storage.GetItem(ctx, params)

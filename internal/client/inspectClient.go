@@ -11,7 +11,6 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 
-	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
@@ -38,13 +37,17 @@ type inspectClient struct {
 	exitCh chan bool
 	client *steam.Client
 
+	cooldown  time.Duration
 	creds     types.Credentials
-	config    config.ClientConfig
 	gcHandler gcHandler.GcHandler
 	l         *slog.Logger
 }
 
-func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler, creds types.Credentials, l *slog.Logger) (InspectClient, error) {
+func NewInspectClient(
+	creds types.Credentials,
+	cooldown time.Duration,
+	gcHandler gcHandler.GcHandler,
+	l *slog.Logger) (InspectClient, error) {
 	if _, err := creds.GenerateLogOnDetails(); err != nil {
 		slog.Error("invalid client credentials")
 		return nil, err
@@ -54,8 +57,8 @@ func NewInspectClient(config config.ClientConfig, gcHandler gcHandler.GcHandler,
 		client: steam.NewClient(),
 		exitCh: make(chan bool),
 
+		cooldown:  cooldown,
 		creds:     creds,
-		config:    config,
 		gcHandler: gcHandler,
 		l:         l.WithGroup(creds.Username),
 	}
@@ -68,7 +71,7 @@ func (c *inspectClient) IsLoggedIn() bool {
 }
 
 func (c *inspectClient) IsAvailable() bool {
-	willBeAvaliable := c.lastUsed.Add(c.config.RequestCooldown)
+	willBeAvaliable := c.lastUsed.Add(c.cooldown)
 	return c.IsLoggedIn() && time.Now().After(willBeAvaliable)
 }
 
@@ -87,13 +90,15 @@ func (c *inspectClient) LogOff() {
 
 const csAppID = 730
 
-func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogOnDetails, exitCh <-chan bool, loginCh chan<- error, l *slog.Logger) {
+func runClientLoop(
+	client *steam.Client,
+	creds steam.LogOnDetails,
+	exitCh <-chan bool,
+	loginCh chan<- error,
+	l *slog.Logger,
+) {
 	auth := newAuth(client, &creds, loginCh)
 	serverList := newServerList(client, "servers/list.json")
-	debug := newDebug(creds.Username, c.DebugLogger, c.DebugLogger)
-	if c.IsDebug {
-		client.RegisterPacketHandler(debug)
-	}
 
 	serverList.Connect()
 
@@ -110,9 +115,6 @@ func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogO
 
 			auth.HandleEvent(event)
 			serverList.HandleEvent(event)
-			if c.IsDebug {
-				debug.HandleEvent(event)
-			}
 
 			switch e := event.(type) {
 			case error:
@@ -126,6 +128,8 @@ func runClientLoop(c config.ClientConfig, client *steam.Client, creds steam.LogO
 	}
 }
 
+const timeoutDuration = 10 * time.Second
+
 func (c *inspectClient) LogIn() error {
 	c.l.Debug("Login attempt", "username", c.creds.Username)
 	logOnDetails, err := c.creds.GenerateLogOnDetails()
@@ -136,7 +140,7 @@ func (c *inspectClient) LogIn() error {
 
 	logIn := make(chan error)
 
-	go runClientLoop(c.config, c.client, logOnDetails, c.exitCh, logIn, c.l)
+	go runClientLoop(c.client, logOnDetails, c.exitCh, logIn, c.l)
 
 	select {
 	case err := <-logIn:
@@ -146,9 +150,9 @@ func (c *inspectClient) LogIn() error {
 		}
 		c.l.Info("login complete, client ready")
 		c.client.GC.RegisterPacketHandler(c.gcHandler)
-		c.lastUsed = time.Now().Add(-c.config.RequestCooldown * 2)
+		c.lastUsed = time.Now().Add(-c.cooldown * 2)
 		return nil
-	case <-time.After(c.config.TimeOutDuration):
+	case <-time.After(timeoutDuration):
 		c.LogOff()
 		c.l.Error("timed out during login")
 		return errors.ErrClientUnableToConnect

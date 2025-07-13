@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	TimeOutDuration = 10 * time.Second
+	RequestTTl      = 10 * time.Second
 	RequestCooldown = 2 * time.Second
 
 	// Use relative paths from project root
@@ -23,7 +23,7 @@ var (
 
 	DefaultClientConfig = ClientConfig{
 		RequestCooldown: RequestCooldown,
-		TimeOutDuration: TimeOutDuration,
+		TimeOutDuration: RequestTTl,
 		IsDebug:         IsDebug,
 		DebugLocation:   DebugLocation,
 		DebugLogger:     DebugLogger,
