@@ -13,7 +13,7 @@ import (
 
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 )
 
 type InspectClient interface {
@@ -38,13 +38,13 @@ type inspectClient struct {
 	client *steam.Client
 
 	cooldown  time.Duration
-	creds     types.Credentials
+	creds     creds.Credentials
 	gcHandler gcHandler.GcHandler
 	l         *slog.Logger
 }
 
 func NewInspectClient(
-	creds types.Credentials,
+	creds creds.Credentials,
 	cooldown time.Duration,
 	gcHandler gcHandler.GcHandler,
 	l *slog.Logger) (InspectClient, error) {

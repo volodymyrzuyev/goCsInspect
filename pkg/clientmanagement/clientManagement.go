@@ -10,6 +10,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
@@ -17,7 +18,7 @@ import (
 )
 
 type ClientManager interface {
-	AddClient(credentials types.Credentials) error
+	AddClient(credentials creds.Credentials) error
 	InspectSkin(params types.InspectParameters) (*item.Item, error)
 	InspectSkinWithCtx(
 		ctx context.Context,
@@ -72,7 +73,7 @@ func NewClientManager(
 	}, nil
 }
 
-func (c *clientManager) AddClient(credentials types.Credentials) error {
+func (c *clientManager) AddClient(credentials creds.Credentials) error {
 	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler, c.l)
 	if err != nil {
 		return err

@@ -16,6 +16,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/logger"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 	"gopkg.in/yaml.v3"
@@ -38,7 +39,7 @@ func main() {
 		panic(err)
 	}
 
-	dance := types.Credentials{
+	dance := creds.Credentials{
 		SharedSecret: os.Getenv("GenDetailerTestDataSharedSecret"),
 		Username:     os.Getenv("GenDetailerTestDataUserName"),
 		Password:     os.Getenv("GenDetailerTestDataPassword"),

@@ -1,4 +1,4 @@
-package types
+package creds
 
 import (
 	"github.com/Philipp15b/go-steam/v3"
