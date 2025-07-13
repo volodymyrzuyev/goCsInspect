@@ -16,7 +16,16 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
 )
 
-type ClientManager struct {
+type ClientManager interface {
+	AddClient(credentials types.Credentials) error
+	InspectSkin(params types.InspectParameters) (*item.Item, error)
+	InspectSkinWithCtx(
+		ctx context.Context,
+		params types.InspectParameters,
+	) (*item.Item, error)
+}
+
+type clientManager struct {
 	clientCooldown time.Duration
 	requestTTl     time.Duration
 
@@ -35,7 +44,7 @@ func NewClientManager(
 	detailer detailer.Detailer,
 	storage storage.Storage,
 	l *slog.Logger,
-) (*ClientManager, error) {
+) (ClientManager, error) {
 
 	lcm := l.WithGroup("ClientManagment")
 
@@ -49,7 +58,7 @@ func NewClientManager(
 	clientList := newClientQue(clientCooldown, l)
 	jobQue := newJobQue(clientList, l)
 
-	return &ClientManager{
+	return &clientManager{
 		clientCooldown: clientCooldown,
 		requestTTl:     requestTTL,
 
@@ -63,7 +72,7 @@ func NewClientManager(
 	}, nil
 }
 
-func (c *ClientManager) AddClient(credentials types.Credentials) error {
+func (c *clientManager) AddClient(credentials types.Credentials) error {
 	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler, c.l)
 	if err != nil {
 		return err
@@ -78,12 +87,12 @@ func (c *ClientManager) AddClient(credentials types.Credentials) error {
 	return nil
 }
 
-func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item, error) {
+func (c *clientManager) InspectSkin(params types.InspectParameters) (*item.Item, error) {
 	ctx := context.TODO()
 	return c.InspectSkinWithCtx(ctx, params)
 }
 
-func (c *ClientManager) InspectSkinWithCtx(
+func (c *clientManager) InspectSkinWithCtx(
 	ctx context.Context,
 	params types.InspectParameters,
 ) (*item.Item, error) {
@@ -123,7 +132,7 @@ func (c *ClientManager) InspectSkinWithCtx(
 	}
 }
 
-func (c *ClientManager) storeToStorage(
+func (c *clientManager) storeToStorage(
 	ctx context.Context,
 	params types.InspectParameters,
 	proto *protobuf.CEconItemPreviewDataBlock,
