@@ -83,7 +83,10 @@ func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item,
 	return c.InspectSkinWithCtx(ctx, params)
 }
 
-func (c *ClientManager) InspectSkinWithCtx(ctx context.Context, params types.InspectParameters) (*item.Item, error) {
+func (c *ClientManager) InspectSkinWithCtx(
+	ctx context.Context,
+	params types.InspectParameters,
+) (*item.Item, error) {
 	ctx, cancel := context.WithTimeout(ctx, c.requestTTl)
 	defer cancel()
 
@@ -120,7 +123,11 @@ func (c *ClientManager) InspectSkinWithCtx(ctx context.Context, params types.Ins
 	}
 }
 
-func (c *ClientManager) storeToStorage(ctx context.Context, params types.InspectParameters, proto *protobuf.CEconItemPreviewDataBlock) {
+func (c *ClientManager) storeToStorage(
+	ctx context.Context,
+	params types.InspectParameters,
+	proto *protobuf.CEconItemPreviewDataBlock,
+) {
 	err := c.storage.StoreItem(ctx, params, proto)
 	if err != nil {
 		c.l.Error(

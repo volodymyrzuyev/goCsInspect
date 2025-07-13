@@ -46,7 +46,11 @@ func getDebugLogger() *slog.Logger {
 		panic(err)
 	}
 
-	logFile, err := os.OpenFile(common.GetAbsolutePath(DebugLocation), os.O_APPEND|os.O_CREATE|os.O_RDWR, 0777)
+	logFile, err := os.OpenFile(
+		common.GetAbsolutePath(DebugLocation),
+		os.O_APPEND|os.O_CREATE|os.O_RDWR,
+		0777,
+	)
 	if err != nil {
 		panic(err)
 	}

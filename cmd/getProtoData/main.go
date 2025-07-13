@@ -104,7 +104,13 @@ func main() {
 		slog.Info(fmt.Sprintf("Status: Got response for (%s) %+v", name, repProto))
 		storeProtos(name, r, repProto)
 		storeInspectParams(name, r, repProto, params)
-		slog.Info(fmt.Sprintf("Status: Finished (%v), %3.2f%% done!", name, float64(i)/float64(len(resources))*100))
+		slog.Info(
+			fmt.Sprintf(
+				"Status: Finished (%v), %3.2f%% done!",
+				name,
+				float64(i)/float64(len(resources))*100,
+			),
+		)
 		i++
 
 		cancel()
@@ -112,7 +118,9 @@ func main() {
 }
 
 func storeProtos(name string, r resourceFetcher, repProto *protobuf.CEconItemPreviewDataBlock) {
-	storeLocation := path.Join(filepath.Join(dataLocation, filepath.Join("responseProtos", name+".yaml")))
+	storeLocation := path.Join(
+		filepath.Join(dataLocation, filepath.Join("responseProtos", name+".yaml")),
+	)
 	output, err := os.OpenFile(storeLocation, os.O_CREATE|os.O_RDWR, 0640)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error opening store file: %s", storeLocation))
@@ -133,8 +141,15 @@ func storeProtos(name string, r resourceFetcher, repProto *protobuf.CEconItemPre
 	}
 }
 
-func storeInspectParams(name string, r resourceFetcher, repProto *protobuf.CEconItemPreviewDataBlock, params types.InspectParameters) {
-	storeLocation := path.Join(filepath.Join(dataLocation, filepath.Join("inspectParams", name+".yaml")))
+func storeInspectParams(
+	name string,
+	r resourceFetcher,
+	repProto *protobuf.CEconItemPreviewDataBlock,
+	params types.InspectParameters,
+) {
+	storeLocation := path.Join(
+		filepath.Join(dataLocation, filepath.Join("inspectParams", name+".yaml")),
+	)
 	output, err := os.OpenFile(storeLocation, os.O_CREATE|os.O_RDWR, 0640)
 	if err != nil {
 		slog.Error(fmt.Sprintf("Error opening store file: %s", storeLocation))

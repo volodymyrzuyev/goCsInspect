@@ -37,7 +37,10 @@ func newJobQue(c *clientQue, l *slog.Logger) *jobQue {
 	return q
 }
 
-func (j *jobQue) registerJob(proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest, ctx context.Context) <-chan response {
+func (j *jobQue) registerJob(
+	proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest,
+	ctx context.Context,
+) <-chan response {
 	newJob := job{
 		requestProto: proto,
 		responseCh:   make(chan response),

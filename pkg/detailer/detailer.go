@@ -136,7 +136,10 @@ const (
 func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error) {
 	item := &item.Item{}
 	item.PopulateProto(proto)
-	item.FloatValue, _ = strconv.ParseFloat(fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))), 32)
+	item.FloatValue, _ = strconv.ParseFloat(
+		fmt.Sprintf("%.15f", float64(math.Float32frombits(proto.GetPaintwear()))),
+		32,
+	)
 
 	if err := d.detailModificationsStickers(item); err != nil {
 		return nil, err
@@ -234,7 +237,12 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 		item.MaxFloat = paintKit.MaxFloat.String()
 		item.MinFloat = paintKit.MinFloat.String()
 		item.ItemName = paintKit.Name
-		item.FullItemName = fmt.Sprintf("%s | %s (%s)", item.WeaponType, item.ItemName, item.WearName)
+		item.FullItemName = fmt.Sprintf(
+			"%s | %s (%s)",
+			item.WeaponType,
+			item.ItemName,
+			item.WearName,
+		)
 	} else {
 		// since the item has a default paintIndex, and it's a knife, this means
 		// it's a vanila knife, they don't show their WearName in the FullItemName
@@ -251,8 +259,14 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 
 	item.QualityName = quality.Name
 	if proto.GetQuality() != defaultItemQuality {
-		if _, ok := d.allItems.Knives[int(proto.GetDefindex())]; proto.Killeaterscoretype != nil && ok {
-			item.FullItemName = fmt.Sprintf("%s %s %s", item.QualityName, d.allItems.Qualities[statTrackQuality].Name, item.FullItemName)
+		if _, ok := d.allItems.Knives[int(proto.GetDefindex())]; proto.Killeaterscoretype != nil &&
+			ok {
+			item.FullItemName = fmt.Sprintf(
+				"%s %s %s",
+				item.QualityName,
+				d.allItems.Qualities[statTrackQuality].Name,
+				item.FullItemName,
+			)
 		} else {
 			item.FullItemName = fmt.Sprintf("%s %s", item.QualityName, item.FullItemName)
 		}

@@ -90,8 +90,18 @@ func TestDetailSkin(t *testing.T) {
 			assert.Equal(t, cur.Item.Quality, actual.Quality, "Proto should be the same")
 			assert.Equal(t, cur.Item.Paintwear, actual.Paintwear, "Proto should be the same")
 			assert.Equal(t, cur.Item.Paintseed, actual.Paintseed, "Proto should be the same")
-			assert.Equal(t, cur.Item.Killeaterscoretype, actual.Killeaterscoretype, "Proto should be the same")
-			assert.Equal(t, cur.Item.Killeatervalue, actual.Killeatervalue, "Proto should be the same")
+			assert.Equal(
+				t,
+				cur.Item.Killeaterscoretype,
+				actual.Killeaterscoretype,
+				"Proto should be the same",
+			)
+			assert.Equal(
+				t,
+				cur.Item.Killeatervalue,
+				actual.Killeatervalue,
+				"Proto should be the same",
+			)
 			assert.Equal(t, cur.Item.Customname, actual.Customname, "Proto should be the same")
 			assert.Equal(t, cur.Item.Inventory, actual.Inventory, "Proto should be the same")
 			assert.Equal(t, cur.Item.Origin, actual.Origin, "Proto should be the same")
@@ -101,15 +111,30 @@ func TestDetailSkin(t *testing.T) {
 			assert.Equal(t, cur.Item.Entindex, actual.Entindex, "Proto should be the same")
 			assert.Equal(t, cur.Item.Petindex, actual.Petindex, "Proto should be the same")
 
-			assert.Equal(t, fmt.Sprintf("%.15f", cur.Item.FloatValue), fmt.Sprintf("%.15f", actual.FloatValue), "Float values should be same")
+			assert.Equal(
+				t,
+				fmt.Sprintf("%.15f", cur.Item.FloatValue),
+				fmt.Sprintf("%.15f", actual.FloatValue),
+				"Float values should be same",
+			)
 			assert.Equal(t, cur.Item.MinFloat, actual.MinFloat, "MinFloat should be the same")
 			assert.Equal(t, cur.Item.MaxFloat, actual.MaxFloat, "MaxFloat should be the same")
 			assert.Equal(t, cur.Item.ItemName, actual.ItemName, "ItemName should be the same")
-			assert.Equal(t, cur.Item.QualityName, actual.QualityName, "QualityName should be the same")
+			assert.Equal(
+				t,
+				cur.Item.QualityName,
+				actual.QualityName,
+				"QualityName should be the same",
+			)
 			assert.Equal(t, cur.Item.WeaponType, actual.WeaponType, "WeaponType should be the same")
 			assert.Equal(t, cur.Item.RarityName, actual.RarityName, "RarityName should be the same")
 			assert.Equal(t, cur.Item.WearName, actual.WearName, "WearName should be the same")
-			assert.Equal(t, cur.Item.FullItemName, actual.FullItemName, "FullItemName should be the same")
+			assert.Equal(
+				t,
+				cur.Item.FullItemName,
+				actual.FullItemName,
+				"FullItemName should be the same",
+			)
 			assert.Equal(t, cur.Item.Stickers, actual.Stickers, "Stickers should be the same")
 			assert.Equal(t, cur.Item.Keychains, actual.Keychains, "Keychains should be the same")
 		})

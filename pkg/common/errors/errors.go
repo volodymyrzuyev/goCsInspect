@@ -18,8 +18,14 @@ var (
 // Credentials
 var (
 	ErrInvalidCredentials      = errors.New("invalid credentials")
-	ErrInsufficientCredentials = errors.Join(ErrInvalidCredentials, errors.New("username and password and (2FC or SharedSecret) must be provided"))
-	ErrInvalidSharedSecret     = errors.Join(ErrInvalidCredentials, errors.New("provided SharedSecret is invalid"))
+	ErrInsufficientCredentials = errors.Join(
+		ErrInvalidCredentials,
+		errors.New("username and password and (2FC or SharedSecret) must be provided"),
+	)
+	ErrInvalidSharedSecret = errors.Join(
+		ErrInvalidCredentials,
+		errors.New("provided SharedSecret is invalid"),
+	)
 )
 
 // inspectParams
@@ -30,12 +36,15 @@ var (
 
 // detailer
 var (
-	ErrUnknownProtoValue       = errors.New("item proto has unknown properties")
-	ErrUnknownRarity           = errors.Join(ErrUnknownProtoValue, errors.New("unknown rarity"))
-	ErrUnknownQuality          = errors.Join(ErrUnknownProtoValue, errors.New("unknown rarity"))
-	ErrUnknownDefIndex         = errors.Join(ErrUnknownProtoValue, errors.New("unknown defIndex"))
-	ErrUnknownPaintIndex       = errors.Join(ErrUnknownProtoValue, errors.New("unknown paintIndex"))
-	ErrUnknownMusicIndex       = errors.Join(ErrUnknownProtoValue, errors.New("unknown musicKit index"))
+	ErrUnknownProtoValue = errors.New("item proto has unknown properties")
+	ErrUnknownRarity     = errors.Join(ErrUnknownProtoValue, errors.New("unknown rarity"))
+	ErrUnknownQuality    = errors.Join(ErrUnknownProtoValue, errors.New("unknown rarity"))
+	ErrUnknownDefIndex   = errors.Join(ErrUnknownProtoValue, errors.New("unknown defIndex"))
+	ErrUnknownPaintIndex = errors.Join(ErrUnknownProtoValue, errors.New("unknown paintIndex"))
+	ErrUnknownMusicIndex = errors.Join(
+		ErrUnknownProtoValue,
+		errors.New("unknown musicKit index"),
+	)
 	ErrUnknownStickerModifier  = errors.Join(ErrUnknownProtoValue, errors.New("unknown sticker"))
 	ErrUnknownKeychainModifier = errors.Join(ErrUnknownProtoValue, errors.New("unknown sticker"))
 )
