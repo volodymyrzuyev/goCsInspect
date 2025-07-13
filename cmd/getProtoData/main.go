@@ -18,7 +18,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/logger"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
 	"gopkg.in/yaml.v3"
 )
 
@@ -88,7 +88,7 @@ func main() {
 	for name, r := range resources {
 		time.Sleep(config.RequestCooldown + 2*time.Second)
 
-		params, err := types.ParseInspectLink(r.InspectLink)
+		params, err := inspectParams.ParseInspectLink(r.InspectLink)
 		if err != nil {
 			slog.Error("Err parsing inspect link", "name", name)
 		}
@@ -146,7 +146,7 @@ func storeInspectParams(
 	name string,
 	r resourceFetcher,
 	repProto *protobuf.CEconItemPreviewDataBlock,
-	params types.InspectParameters,
+	params inspectParams.InspectParameters,
 ) {
 	storeLocation := path.Join(
 		filepath.Join(dataLocation, filepath.Join("inspectParams", name+".yaml")),

@@ -6,11 +6,11 @@ import (
 	"strings"
 
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/types"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
 	"gopkg.in/yaml.v3"
 )
 
-func GetInspectParams() map[string]types.InspectParameters {
+func GetInspectParams() map[string]inspectParams.InspectParameters {
 	protoPath := common.GetAbsolutePath(filepath.Join("tests", "inspectParams"))
 
 	fs, err := os.ReadDir(protoPath)
@@ -18,7 +18,7 @@ func GetInspectParams() map[string]types.InspectParameters {
 		panic(err)
 	}
 
-	ret := make(map[string]types.InspectParameters)
+	ret := make(map[string]inspectParams.InspectParameters)
 
 	for _, f := range fs {
 		if f.IsDir() {
@@ -32,7 +32,7 @@ func GetInspectParams() map[string]types.InspectParameters {
 			panic(err)
 		}
 
-		params := types.InspectParameters{}
+		params := inspectParams.InspectParameters{}
 		err = yaml.Unmarshal(toParse, &params)
 		if err != nil {
 			panic(err)

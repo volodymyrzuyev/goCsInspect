@@ -13,7 +13,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
-	t "github.com/volodymyrzuyev/goCsInspect/pkg/types"
+	t "github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
 )
 
 type Sqlite struct {
