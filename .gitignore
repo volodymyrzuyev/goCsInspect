@@ -4,6 +4,7 @@ debug/
 game_files/
 .env
 database/
+config.yaml
 
 
 # test data

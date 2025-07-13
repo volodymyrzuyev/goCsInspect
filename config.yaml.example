@@ -1,0 +1,35 @@
+# time until a unresolved request times out
+# format: [days]d[hours]h[minutes]m[seconds]s
+requestttl: 3s500ms
+
+# sleep time between requests sent by client
+# format: [days]d[hours]h[minutes]m[seconds]s
+clientcooldown: 1s100ms
+
+# list of accounts to use as inspect clients
+# either sharedsecret or twofactorcode is needed
+accounts:
+      # username
+    - username: username1
+      # password
+      password: password1
+      # 2FA code
+      twofactorcode: MFACO1
+      # shared secret
+      sharedsecret: sharedsecret
+
+    - username: username2
+      password: password2
+      twofactorcode: MFACO2
+      sharedsecret: sharedsecret
+
+# relative location to csfiles
+gameitemslocation: game_files/items_game.txt
+gamelanguagelocation: game_files/csgo_english.txt
+
+# relative location to database storage
+databasestring: database/data.db
+
+# Log level
+# Supported: [DEBUG, INFO, WARN, ERROR]
+leveldebug: INFO

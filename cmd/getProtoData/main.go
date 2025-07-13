@@ -12,13 +12,13 @@ import (
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/joho/godotenv"
-	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/logger"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/logger"
 	"gopkg.in/yaml.v3"
 )
 
@@ -47,7 +47,12 @@ func main() {
 
 	gcHandler := gcHandler.NewGcHandler(log)
 
-	client, err := client.NewInspectClient(dance, config.RequestTTl, gcHandler, log)
+	client, err := client.NewInspectClient(
+		dance,
+		config.DefaultConfig.ClientCooldown,
+		gcHandler,
+		log,
+	)
 	if err != nil {
 		slog.Error("Can't create client")
 		panic(err)
@@ -86,7 +91,7 @@ func main() {
 
 	i := 1
 	for name, r := range resources {
-		time.Sleep(config.RequestCooldown + 2*time.Second)
+		time.Sleep(config.DefaultConfig.ClientCooldown + 2*time.Second)
 
 		params, err := inspectParams.ParseInspectLink(r.InspectLink)
 		if err != nil {
@@ -94,7 +99,7 @@ func main() {
 		}
 		requestProto, _ := params.GenerateGcRequestProto()
 
-		ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+		ctx, cancel := context.WithTimeout(context.TODO(), config.DefaultConfig.RequestTTl)
 
 		repProto, err := client.InspectItem(ctx, requestProto)
 		if err != nil {
