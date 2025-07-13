@@ -1,6 +1,7 @@
 package clientmanagement
 
 import (
+	"context"
 	"log/slog"
 	"sync"
 	"time"
@@ -17,6 +18,7 @@ type response struct {
 type job struct {
 	requestProto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest
 	responseCh   chan response
+	ctx          context.Context
 }
 
 type jobQue struct {
@@ -35,10 +37,11 @@ func newJobQue(c *clientQue, l *slog.Logger) *jobQue {
 	return q
 }
 
-func (j *jobQue) registerJob(proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) <-chan response {
+func (j *jobQue) registerJob(proto *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest, ctx context.Context) <-chan response {
 	newJob := job{
 		requestProto: proto,
 		responseCh:   make(chan response),
+		ctx:          ctx,
 	}
 
 	j.mu.Lock()
@@ -54,15 +57,22 @@ const queIdleSleepTime = 75 * time.Millisecond
 func (j *jobQue) runQue() {
 	for {
 		j.mu.Lock()
-		if j.que.Len() > 0 {
-			job := j.que.Dequeue().(job)
-			j.mu.Unlock()
-			j.l.Debug("processing job", "item_id", job.requestProto.GetParamA())
-			j.clientQue.runJob(job)
-
-		} else {
+		if j.que.Len() == 0 {
 			j.mu.Unlock()
 			time.Sleep(queIdleSleepTime)
+			continue
+		}
+
+		job := j.que.Dequeue().(job)
+		j.mu.Unlock()
+		select {
+		case <-job.ctx.Done():
+			close(job.responseCh)
+			continue
+
+		default:
+			j.l.Debug("processing job", "item_id", job.requestProto.GetParamA())
+			j.clientQue.runJob(job)
 		}
 	}
 }

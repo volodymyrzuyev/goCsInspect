@@ -1,6 +1,7 @@
 package gcHandler
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 	"time"
@@ -16,7 +17,7 @@ func TestStoreResponse(t *testing.T) {
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(10*time.Second, l)
+	gcHandlerI := NewGcHandler(l)
 	gc := gcHandlerI.(*gcHandler)
 
 	cleanUp := func(itemId uint64) {
@@ -61,7 +62,7 @@ func TestGetResponse(t *testing.T) {
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(1*time.Second, l)
+	gcHandlerI := NewGcHandler(l)
 	gc := gcHandlerI.(*gcHandler)
 
 	t.Run("Response Received Before Data Requested", func(t *testing.T) {
@@ -69,7 +70,8 @@ func TestGetResponse(t *testing.T) {
 
 		gc.responses[itemId] = dummyProto
 
-		response, err := gc.GetResponse(itemId)
+		ctx, _ := context.WithTimeout(context.TODO(), 1*time.Second)
+		response, err := gc.GetResponse(ctx, itemId)
 
 		_, ok := gc.responses[itemId]
 
@@ -86,7 +88,8 @@ func TestGetResponse(t *testing.T) {
 			gc.mu.Unlock()
 		}()
 
-		response, err := gc.GetResponse(itemId)
+		ctx, _ := context.WithTimeout(context.TODO(), 1*time.Second)
+		response, err := gc.GetResponse(ctx, itemId)
 
 		assert.Equal(t, dummyProto, response, "should be the same")
 		assert.Nil(t, err, "there should be no error")
@@ -94,7 +97,9 @@ func TestGetResponse(t *testing.T) {
 	})
 
 	t.Run("No Response", func(t *testing.T) {
-		response, err := gc.GetResponse(itemId)
+		ctx, cancel := context.WithTimeout(context.TODO(), 1*time.Second)
+		cancel()
+		response, err := gc.GetResponse(ctx, itemId)
 
 		assert.Nil(t, response, "response should be nil")
 		assert.Equal(t, errors.ErrClientTimeout, err, "there should be an error")

@@ -1,9 +1,9 @@
 package gcHandler
 
 import (
+	"context"
 	"log/slog"
 	"sync"
-	"time"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	csProto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
@@ -14,7 +14,10 @@ import (
 
 type GcHandler interface {
 	HandleGCPacket(packet *gamecoordinator.GCPacket)
-	GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlock, error)
+	GetResponse(
+		ctx context.Context,
+		itemId uint64,
+	) (*csProto.CEconItemPreviewDataBlock, error)
 }
 
 type gcHandler struct {
@@ -22,18 +25,16 @@ type gcHandler struct {
 	responses        map[uint64]*csProto.CEconItemPreviewDataBlock
 	pendingResponses map[uint64]chan *csProto.CEconItemPreviewDataBlock
 
-	timeOutDuration time.Duration
-	l               *slog.Logger
+	l *slog.Logger
 }
 
-func NewGcHandler(timeOutDuration time.Duration, l *slog.Logger) GcHandler {
+func NewGcHandler(l *slog.Logger) GcHandler {
 	l = l.WithGroup("GcHandler")
 	return &gcHandler{
 		pendingResponses: make(map[uint64]chan *csProto.CEconItemPreviewDataBlock),
 		responses:        make(map[uint64]*csProto.CEconItemPreviewDataBlock),
 
-		timeOutDuration: timeOutDuration,
-		l:               l,
+		l: l,
 	}
 }
 
@@ -88,7 +89,11 @@ func (g *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	g.storeResponse(msg.Iteminfo)
 }
 
-func (g *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlock, error) {
+func (g *gcHandler) GetResponse(
+	ctx context.Context,
+	itemId uint64,
+) (*csProto.CEconItemPreviewDataBlock, error) {
+
 	g.mu.Lock()
 	g.l.Debug("got request for item preview block", "item_id", itemId)
 
@@ -112,7 +117,8 @@ func (g *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlo
 	case response := <-ch:
 		g.l.Debug("got item preview block", "item_id", itemId)
 		return response, nil
-	case <-time.After(g.timeOutDuration):
+
+	case <-ctx.Done():
 		// if no response in allowed time, clean up the chan map
 		g.mu.Lock()
 		if chP, ok := g.pendingResponses[itemId]; ok && chP == ch {
@@ -120,6 +126,7 @@ func (g *gcHandler) GetResponse(itemId uint64) (*csProto.CEconItemPreviewDataBlo
 		}
 		g.mu.Unlock()
 		g.l.Error("item preview block request timed out", "item_id", itemId)
+
 		return nil, errors.ErrClientTimeout
 	}
 }

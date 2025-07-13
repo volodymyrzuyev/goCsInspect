@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
-	"time"
 
+	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/volodymyrzuyev/goCsInspect/config"
 	"github.com/volodymyrzuyev/goCsInspect/internal/client"
 	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
@@ -36,7 +36,7 @@ func NewClientManager(detailer detailer.Detailer, clientConfig config.ClientConf
 		return nil, errors.ErrInvalidManagerConfig
 	}
 
-	gcHandler := gcHandler.NewGcHandler(clientConfig.TimeOutDuration, l)
+	gcHandler := gcHandler.NewGcHandler(l)
 	clientList := newClientQue(clientConfig.TimeOutDuration, l)
 	jobQue := newJobQue(clientList, l)
 
@@ -68,7 +68,15 @@ func (c *ClientManager) AddClient(credentials types.Credentials) error {
 }
 
 func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item, error) {
-	proto, err := c.storage.GetItem(context.TODO(), params)
+	ctx := context.TODO()
+	return c.InspectSkinWithCtx(ctx, params)
+}
+
+func (c *ClientManager) InspectSkinWithCtx(ctx context.Context, params types.InspectParameters) (*item.Item, error) {
+	ctx, cancel := context.WithTimeout(ctx, c.clientConfig.TimeOutDuration)
+	defer cancel()
+
+	proto, err := c.storage.GetItem(ctx, params)
 	if err == nil {
 		c.l.Debug("item previously stored", "params", fmt.Sprintf("%+v", params))
 		return c.detailer.DetailProto(proto)
@@ -85,24 +93,29 @@ func (c *ClientManager) InspectSkin(params types.InspectParameters) (*item.Item,
 		return nil, err
 	}
 
-	responseChan := c.jobQue.registerJob(inspectProto)
+	responseChan := c.jobQue.registerJob(inspectProto, ctx)
+
 	select {
 	case resp := <-responseChan:
 		if resp.err != nil {
 			return nil, err
 		}
-		err = c.storage.StoreItem(context.TODO(), params, resp.responseProto)
-		if err != nil {
-			c.l.Error(
-				"item not stored",
-				"inspect_params", fmt.Sprintf("%+v", params),
-				"error", err,
-			)
-		}
+		go c.storeToStorage(context.Background(), params, resp.responseProto)
 		return c.detailer.DetailProto(resp.responseProto)
 
-	case <-time.After(c.clientQue.clientCooldown * 25):
-		c.l.Error("request timeout", "params", fmt.Sprintf("%+v", params))
+	case <-ctx.Done():
+		slog.Error("client timeout requesting item preview block", "item_id", params.A)
 		return nil, errors.ErrClientTimeout
+	}
+}
+
+func (c *ClientManager) storeToStorage(ctx context.Context, params types.InspectParameters, proto *protobuf.CEconItemPreviewDataBlock) {
+	err := c.storage.StoreItem(ctx, params, proto)
+	if err != nil {
+		c.l.Error(
+			"item not stored",
+			"inspect_params", fmt.Sprintf("%+v", params),
+			"error", err,
+		)
 	}
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -43,7 +44,7 @@ func main() {
 		Password:     os.Getenv("GenDetailerTestDataPassword"),
 	}
 
-	gcHandler := gcHandler.NewGcHandler(config.TimeOutDuration, log)
+	gcHandler := gcHandler.NewGcHandler(log)
 
 	client, err := client.NewInspectClient(config.DefaultClientConfig, gcHandler, dance, log)
 	if err != nil {
@@ -92,7 +93,9 @@ func main() {
 		}
 		requestProto, _ := params.GenerateGcRequestProto()
 
-		repProto, err := client.InspectItem(requestProto)
+		ctx, cancel := context.WithTimeout(context.TODO(), 10*time.Second)
+
+		repProto, err := client.InspectItem(ctx, requestProto)
 		if err != nil {
 			slog.Error("Err getting skin", "error", name, "InspectLink", r.InspectLink)
 			panic(err)
@@ -103,6 +106,8 @@ func main() {
 		storeInspectParams(name, r, repProto, params)
 		slog.Info(fmt.Sprintf("Status: Finished (%v), %3.2f%% done!", name, float64(i)/float64(len(resources))*100))
 		i++
+
+		cancel()
 	}
 }
 

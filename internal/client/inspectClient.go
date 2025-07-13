@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"time"
@@ -25,7 +26,10 @@ type InspectClient interface {
 	LogIn() error
 	Reconnect() error
 
-	InspectItem(params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) (*protobuf.CEconItemPreviewDataBlock, error)
+	InspectItem(
+		ctx context.Context,
+		params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest,
+	) (*protobuf.CEconItemPreviewDataBlock, error)
 }
 
 type inspectClient struct {
@@ -159,7 +163,11 @@ func (c *inspectClient) Reconnect() error {
 
 const inspectRequestProtoID = 9156
 
-func (c *inspectClient) InspectItem(params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest) (*protobuf.CEconItemPreviewDataBlock, error) {
+func (c *inspectClient) InspectItem(
+	ctx context.Context,
+	params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest,
+) (*protobuf.CEconItemPreviewDataBlock, error) {
+
 	c.l.Debug("item previw block requested", "proto", fmt.Sprintf("%+v", params))
 
 	if params == nil {
@@ -172,10 +180,15 @@ func (c *inspectClient) InspectItem(params *protobuf.CMsgGCCStrike15V2_Client2GC
 		return nil, errors.ErrClientUnavailable
 	}
 
-	proto := gamecoordinator.NewGCMsgProtobuf(csAppID, uint32(inspectRequestProtoID), params)
-	c.l.Debug("sent item preview block packet")
-	c.client.GC.Write(proto)
-	c.lastUsed = time.Now()
+	select {
+	case <-ctx.Done():
+		return nil, errors.ErrClientTimeout
+	default:
+		proto := gamecoordinator.NewGCMsgProtobuf(csAppID, uint32(inspectRequestProtoID), params)
+		c.l.Debug("sent item preview block packet")
+		c.client.GC.Write(proto)
+		c.lastUsed = time.Now()
 
-	return c.gcHandler.GetResponse(params.GetParamA())
+		return c.gcHandler.GetResponse(ctx, params.GetParamA())
+	}
 }

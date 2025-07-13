@@ -32,7 +32,7 @@ func (c *clientQue) runJob(j job) {
 
 		if cli.IsAvailable() {
 			c.l.Debug("requesting preview block", "item_id", j.requestProto.GetParamA(), "client", cli.Username())
-			resp, err := cli.InspectItem(j.requestProto)
+			resp, err := cli.InspectItem(j.ctx, j.requestProto)
 			j.responseCh <- response{responseProto: resp, err: err}
 			return
 		}
