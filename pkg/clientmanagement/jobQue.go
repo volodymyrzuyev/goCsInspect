@@ -68,13 +68,14 @@ func (j *jobQue) runQue() {
 
 		job := j.que.Dequeue().(job)
 		j.mu.Unlock()
+		j.l.Debug("processing job", "item_id", job.requestProto.GetParamA())
 		select {
 		case <-job.ctx.Done():
 			close(job.responseCh)
+			j.l.Debug("job expired", "item_id", job.requestProto.GetParamA())
 			continue
 
 		default:
-			j.l.Debug("processing job", "item_id", job.requestProto.GetParamA())
 			j.clientQue.runJob(job)
 		}
 	}

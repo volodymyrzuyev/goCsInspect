@@ -40,6 +40,7 @@ func (c *clientQue) runJob(j job) {
 			)
 			resp, err := cli.InspectItem(j.ctx, j.requestProto)
 			j.responseCh <- response{responseProto: resp, err: err}
+			close(j.responseCh)
 			return
 		}
 	}
