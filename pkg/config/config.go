@@ -20,6 +20,8 @@ type Config struct {
 	DatabaseString       string
 
 	LogLevel slog.Level
+
+	BindIP string
 }
 
 var (
@@ -30,9 +32,11 @@ var (
 
 		GameItemsLocation:    common.GetAbsolutePath("game_files/items_game.txt"),
 		GameLanguageLocation: common.GetAbsolutePath("game_files/csgo_english.txt"),
-		DatabaseString:       common.GetAbsolutePath("database/data.db"),
+		DatabaseString:       common.GetAbsolutePath("data.db"),
 
 		LogLevel: slog.LevelDebug,
+
+		BindIP: "0.0.0.0:8080",
 	}
 
 	DefaultConfigLocation = common.GetAbsolutePath("config.yaml")
