@@ -1,6 +1,19 @@
 package testdata
 
-import "database/sql"
+import (
+	"database/sql"
+	"path/filepath"
+	"runtime"
+)
+
+func GetTestDirectory() string {
+	_, fileName, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("could not get test directory")
+	}
+
+	return filepath.Dir(filepath.Dir(fileName))
+}
 
 func Uint64Pointer(i uint64) *uint64 {
 	return &i

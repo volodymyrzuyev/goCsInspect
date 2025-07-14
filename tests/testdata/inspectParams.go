@@ -5,13 +5,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
 	"gopkg.in/yaml.v3"
 )
 
 func GetInspectParams() map[string]inspectParams.InspectParameters {
-	protoPath := common.GetAbsolutePath(filepath.Join("tests", "inspectParams"))
+	protoPath := filepath.Join(GetTestDirectory(), "inspectParams")
 
 	fs, err := os.ReadDir(protoPath)
 	if err != nil {

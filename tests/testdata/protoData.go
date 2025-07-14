@@ -6,12 +6,11 @@ import (
 	"strings"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"gopkg.in/yaml.v3"
 )
 
 func GetTestProtoData() map[string]*protobuf.CEconItemPreviewDataBlock {
-	protoPath := common.GetAbsolutePath(filepath.Join("tests", "responseProtos"))
+	protoPath := filepath.Join(GetTestDirectory(), "responseProtos")
 
 	fs, err := os.ReadDir(protoPath)
 	if err != nil {

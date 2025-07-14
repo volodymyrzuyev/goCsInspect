@@ -10,8 +10,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/assert/yaml"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 	"github.com/volodymyrzuyev/goCsInspect/tests/testdata"
 )
@@ -22,7 +20,7 @@ type expected struct {
 }
 
 func getExpected() map[string]*expected {
-	protoPath := common.GetAbsolutePath(filepath.Join("tests", "detailerGoldenOutput"))
+	protoPath := filepath.Join(testdata.GetTestDirectory(), "detailerGoldenOutput")
 
 	fs, err := os.ReadDir(protoPath)
 	if err != nil {
@@ -58,8 +56,14 @@ func getExpected() map[string]*expected {
 func TestDetailSkin(t *testing.T) {
 	l := slog.New(slog.DiscardHandler)
 	detailer, err := NewDetailerGameFiles(
-		config.DefaultConfig.GameLanguageLocation,
-		config.DefaultConfig.GameItemsLocation,
+		filepath.Join(
+			filepath.Join(filepath.Dir(testdata.GetTestDirectory()), "game_files"),
+			"csgo_english.txt",
+		),
+		filepath.Join(
+			filepath.Join(filepath.Dir(testdata.GetTestDirectory()), "game_files"),
+			"items_game.txt",
+		),
 		l,
 	)
 	if err != nil {

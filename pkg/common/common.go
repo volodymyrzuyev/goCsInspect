@@ -2,22 +2,19 @@ package common
 
 import (
 	"database/sql"
+	"os"
 	"path/filepath"
-	"runtime"
 )
 
-func GetProjectRoot() string {
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("Failed to get current file path")
+func GetAbsolutePath(relativePath string) string {
+	if filepath.IsAbs(relativePath) {
+		return relativePath
+	}
+	projectRoot, err := os.Getwd()
+	if err != nil {
+		panic("could not get working directory")
 	}
 
-	projectRoot := filepath.Dir(filepath.Dir(filepath.Dir(filename)))
-	return projectRoot
-}
-
-func GetAbsolutePath(relativePath string) string {
-	projectRoot := GetProjectRoot()
 	return filepath.Join(projectRoot, relativePath)
 }
 
