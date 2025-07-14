@@ -16,6 +16,7 @@ import (
 
 type Detailer interface {
 	DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error)
+	UpdateItems(newItems *csgo.Csgo)
 }
 
 type detailer struct {
@@ -23,31 +24,32 @@ type detailer struct {
 	l        *slog.Logger
 }
 
-func NewDetailer(langugeFile, gameItems string, l *slog.Logger) (Detailer, error) {
-	l = l.WithGroup("Detailer")
+func NewDetailerGameFiles(langugeFile, gameItems string, l *slog.Logger) (Detailer, error) {
+	ln := l.WithGroup("Detailer")
 
 	languageData, err := parser.Parse(langugeFile)
 	if err != nil {
-		l.Error("could not parser language file", "error", err)
+		ln.Error("could not parser language file", "error", err)
 		return nil, err
 	}
 
 	itemData, err := parser.Parse(gameItems)
 	if err != nil {
-		l.Error("could not parser item file", "error", err)
+		ln.Error("could not parser item file", "error", err)
 		return nil, err
 	}
 
 	allItems, err := csgo.New(languageData, itemData)
 	if err != nil {
-		l.Error("could not parser cs files", "error", err)
+		ln.Error("could not parser cs files", "error", err)
 		return nil, err
 	}
 
-	return &detailer{
-		allItems: allItems,
-		l:        l,
-	}, nil
+	return NewDetailerWithCSItems(allItems, l)
+}
+
+func NewDetailerWithCSItems(items *csgo.Csgo, l *slog.Logger) (Detailer, error) {
+	return &detailer{allItems: items, l: l.WithGroup("Detailer")}, nil
 }
 
 func (d *detailer) detailModificationsStickers(item *item.Item) error {
@@ -273,4 +275,8 @@ func (d *detailer) DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item
 	}
 
 	return item, nil
+}
+
+func (d *detailer) UpdateItems(newItems *csgo.Csgo) {
+	d.allItems = newItems
 }

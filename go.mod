@@ -9,6 +9,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/golang-collections/collections v0.0.0-20130729185459-604e922904d3
 	github.com/golang-migrate/migrate/v4 v4.18.3
+	github.com/google/go-github/v62 v62.0.0
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/mattn/go-sqlite3 v1.14.22
@@ -26,6 +27,7 @@ require (
 	github.com/charmbracelet/x/cellbuf v0.0.13-0.20250311204145-2c3ea96c31dd // indirect
 	github.com/charmbracelet/x/term v0.2.1 // indirect
 	github.com/go-logfmt/logfmt v0.6.0 // indirect
+	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -52,7 +54,6 @@ require (
 	golang.org/x/sync v0.14.0 // indirect
 	golang.org/x/sys v0.33.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
-	golang.org/x/time v0.11.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.36.3 // indirect

@@ -57,7 +57,7 @@ func getExpected() map[string]*expected {
 
 func TestDetailSkin(t *testing.T) {
 	l := slog.New(slog.DiscardHandler)
-	detailer, err := NewDetailer(
+	detailer, err := NewDetailerGameFiles(
 		config.DefaultConfig.GameLanguageLocation,
 		config.DefaultConfig.GameItemsLocation,
 		l,

@@ -26,6 +26,11 @@ accounts:
 # relative location to csfiles
 gameitemslocation: game_files/items_game.txt
 gamelanguagelocation: game_files/csgo_english.txt
+# should game files be auto updated
+autoupdategamefiles: true
+# auto update time interval
+# format: [days]d[hours]h[minutes]m[seconds]s
+gamefilesautoupdateinverval: 4h0m0s
 
 # relative location to database storage
 databasestring: database/data.db

@@ -50,7 +50,6 @@ var (
 )
 
 // storage
-
 var (
 	ErrDB = errors.New("database error")
 
@@ -63,4 +62,9 @@ var (
 	ErrFetchItem     = errors.Join(ErrDBFetch, errors.New("err fetching item"))
 	ErrFetchSticker  = errors.Join(ErrDBFetch, errors.New("err fetching sticker"))
 	ErrFetchKeychain = errors.Join(ErrDBFetch, errors.New("err fetching keychain"))
+)
+
+// gameFileManager
+var (
+	ErrNoNewFiles = errors.New("no new game files")
 )

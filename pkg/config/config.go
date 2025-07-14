@@ -15,9 +15,12 @@ type Config struct {
 	ClientCooldown time.Duration
 	Accounts       []creds.Credentials
 
-	GameItemsLocation    string
-	GameLanguageLocation string
-	DatabaseString       string
+	GameItemsLocation           string
+	GameLanguageLocation        string
+	AutoUpdateGameFiles         bool
+	GameFilesAutoUpdateInverval time.Duration
+
+	DatabaseString string
 
 	LogLevel slog.Level
 
@@ -30,9 +33,12 @@ var (
 		ClientCooldown: 1*time.Second + 100*time.Millisecond,
 		Accounts:       []creds.Credentials{},
 
-		GameItemsLocation:    common.GetAbsolutePath("game_files/items_game.txt"),
-		GameLanguageLocation: common.GetAbsolutePath("game_files/csgo_english.txt"),
-		DatabaseString:       common.GetAbsolutePath("data.db"),
+		GameItemsLocation:           common.GetAbsolutePath("game_files/items_game.txt"),
+		GameLanguageLocation:        common.GetAbsolutePath("game_files/csgo_english.txt"),
+		AutoUpdateGameFiles:         true,
+		GameFilesAutoUpdateInverval: 4 * time.Hour,
+
+		DatabaseString: common.GetAbsolutePath("data.db"),
 
 		LogLevel: slog.LevelDebug,
 
