@@ -17,7 +17,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
-type ClientManager interface {
+type Manager interface {
 	AddClient(credentials creds.Credentials) error
 	InspectSkin(params inspect.Parameters) (*item.Item, error)
 	InspectSkinWithCtx(ctx context.Context, params inspect.Parameters) (*item.Item, error)
@@ -28,7 +28,7 @@ type ClientManager interface {
 	) (*protobuf.CEconItemPreviewDataBlock, error)
 }
 
-type clientManager struct {
+type manager struct {
 	clientCooldown time.Duration
 	requestTTl     time.Duration
 
@@ -46,7 +46,7 @@ func NewClientManager(
 	clientCooldown time.Duration,
 	detailer detailer.Detailer,
 	storage storage.Storage,
-) (ClientManager, error) {
+) (Manager, error) {
 
 	lcm := slog.Default().WithGroup("ClientManagment")
 
@@ -60,7 +60,7 @@ func NewClientManager(
 	clientList := newClientQue(clientCooldown)
 	jobQue := newJobQue(clientList)
 
-	return &clientManager{
+	return &manager{
 		clientCooldown: clientCooldown,
 		requestTTl:     requestTTL,
 
@@ -74,8 +74,8 @@ func NewClientManager(
 	}, nil
 }
 
-func (c *clientManager) AddClient(credentials creds.Credentials) error {
-	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler)
+func (m *manager) AddClient(credentials creds.Credentials) error {
+	newClient, err := client.NewInspectClient(credentials, m.clientCooldown, m.gcHandler)
 	if err != nil {
 		return err
 	}
@@ -85,43 +85,43 @@ func (c *clientManager) AddClient(credentials creds.Credentials) error {
 		return err
 	}
 
-	c.clientQue.addClient(newClient)
+	m.clientQue.addClient(newClient)
 	return nil
 }
 
-func (c *clientManager) GetProtoWithCtx(
+func (m *manager) GetProtoWithCtx(
 	ctx context.Context,
 	params inspect.Parameters,
 ) (*protobuf.CEconItemPreviewDataBlock, error) {
 
-	ctx, cancel := context.WithTimeout(ctx, c.requestTTl)
+	ctx, cancel := context.WithTimeout(ctx, m.requestTTl)
 	defer cancel()
 
-	proto, err := c.storage.GetItem(ctx, params)
+	proto, err := m.storage.GetItem(ctx, params)
 	if err == nil {
-		c.l.Debug("item previously stored", "params", fmt.Sprintf("%+v", params))
+		m.l.Debug("item previously stored", "params", fmt.Sprintf("%+v", params))
 		return proto, nil
 	}
 
-	if c.clientQue.len() == 0 {
-		c.l.Error("no avaliable clients to request data")
+	if m.clientQue.len() == 0 {
+		m.l.Error("no avaliable clients to request data")
 		return nil, errors.ErrNoAvailableClients
 	}
 
 	inspectProto, err := params.GenerateGcRequestProto()
 	if err != nil {
-		c.l.Error("invalid request params", "params", fmt.Sprintf("%+v", params))
+		m.l.Error("invalid request params", "params", fmt.Sprintf("%+v", params))
 		return nil, err
 	}
 
-	responseChan := c.jobQue.registerJob(inspectProto, ctx)
+	responseChan := m.jobQue.registerJob(inspectProto, ctx)
 
 	select {
 	case resp := <-responseChan:
 		if resp.err != nil {
 			return nil, err
 		}
-		go c.storeToStorage(context.Background(), params, resp.responseProto)
+		go m.storeToStorage(context.Background(), params, resp.responseProto)
 		return resp.responseProto, nil
 
 	case <-ctx.Done():
@@ -130,40 +130,40 @@ func (c *clientManager) GetProtoWithCtx(
 	}
 }
 
-func (c *clientManager) GetProto(
+func (m *manager) GetProto(
 	params inspect.Parameters,
 ) (*protobuf.CEconItemPreviewDataBlock, error) {
 
-	return c.GetProtoWithCtx(context.TODO(), params)
+	return m.GetProtoWithCtx(context.TODO(), params)
 }
 
-func (c *clientManager) InspectSkinWithCtx(
+func (m *manager) InspectSkinWithCtx(
 	ctx context.Context,
 	params inspect.Parameters,
 ) (*item.Item, error) {
 
-	proto, err := c.GetProtoWithCtx(ctx, params)
+	proto, err := m.GetProtoWithCtx(ctx, params)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return c.detailer.DetailProto(proto)
+	return m.detailer.DetailProto(proto)
 }
 
-func (c *clientManager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
+func (m *manager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
 	ctx := context.TODO()
-	return c.InspectSkinWithCtx(ctx, params)
+	return m.InspectSkinWithCtx(ctx, params)
 }
 
-func (c *clientManager) storeToStorage(
+func (m *manager) storeToStorage(
 	ctx context.Context,
 	params inspect.Parameters,
 	proto *protobuf.CEconItemPreviewDataBlock,
 ) {
-	err := c.storage.StoreItem(ctx, params, proto)
+	err := m.storage.StoreItem(ctx, params, proto)
 	if err != nil {
-		c.l.Error(
+		m.l.Error(
 			"item not stored",
 			"inspect_params", fmt.Sprintf("%+v", params),
 			"error", err,

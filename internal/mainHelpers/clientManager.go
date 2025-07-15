@@ -13,7 +13,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
-func InitDefaultClientManager(cfg config.Config) clientmanagement.ClientManager {
+func InitDefaultClientManager(cfg config.Config) clientmanagement.Manager {
 	mainLogger := slog.Default().WithGroup("Main")
 
 	storage, err := sqlite.NewSQLiteStore(cfg.DatabaseString)
@@ -25,12 +25,12 @@ func InitDefaultClientManager(cfg config.Config) clientmanagement.ClientManager 
 	return InitClientManager(storage, cfg)
 }
 
-func InitClientManagerNoStorage(cfg config.Config) clientmanagement.ClientManager {
+func InitClientManagerNoStorage(cfg config.Config) clientmanagement.Manager {
 
 	return InitClientManager(&dummyStorage{}, cfg)
 }
 
-func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.ClientManager {
+func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.Manager {
 	mainLogger := slog.Default().WithGroup("Main")
 
 	fileDownloader := filedownloader.NewFileDownloader()

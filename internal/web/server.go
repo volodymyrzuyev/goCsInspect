@@ -13,18 +13,18 @@ import (
 
 type Server struct {
 	echo *echo.Echo
-	cm   clientmanagement.ClientManager
+	m   clientmanagement.Manager
 	l    *slog.Logger
 }
 
-func NewServer(clientManager clientmanagement.ClientManager) *Server {
+func NewServer(clientManager clientmanagement.Manager) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
 
 	s := &Server{
 		echo: e,
-		cm:   clientManager,
+		m:   clientManager,
 		l:    slog.Default().WithGroup("Web"),
 	}
 
@@ -96,7 +96,7 @@ func (s *Server) root(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "invalid params")
 	}
 
-	item, err := s.cm.InspectSkin(params)
+	item, err := s.m.InspectSkin(params)
 	if err != nil {
 		slog.Error(
 			"internal server error",
