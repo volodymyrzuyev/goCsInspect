@@ -9,7 +9,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/gamefileupdater"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/gamefiles"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
@@ -34,7 +34,7 @@ func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.
 	mainLogger := slog.Default().WithGroup("Main")
 
 	fileDownloader := filedownloader.NewFileDownloader()
-	fileManager := gamefileupdater.NewFileUpdater(
+	fileManager := gamefiles.NewFileUpdater(
 		cfg.GameFilesAutoUpdateInverval,
 		cfg.AutoUpdateGameFiles,
 		cfg.GameLanguageLocation,

@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/go-github/v62/github"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
-	gfu "github.com/volodymyrzuyev/goCsInspect/pkg/gamefileupdater"
+	gfu "github.com/volodymyrzuyev/goCsInspect/pkg/gamefiles"
 )
 
 const (
@@ -29,7 +29,7 @@ type fileDownloader struct {
 	l *slog.Logger
 }
 
-func NewFileDownloader() gfu.FileDownloader {
+func NewFileDownloader() gfu.Downloader {
 
 	return &fileDownloader{
 		client: github.NewClient(nil),
