@@ -27,6 +27,8 @@ func init() {
 }
 
 func main() {
+	flag.Parse()
+
 	cfg, err := config.ParseConfig(cfgLocation)
 	if err != nil {
 		fmt.Println("invalid configuration location, stoping")
