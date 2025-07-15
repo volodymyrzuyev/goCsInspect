@@ -11,8 +11,5 @@ config.yaml
 tests/responseProtos/
 tests/inspect/
 
-# code gen
-internal/storage/*/sql/sqlc
-
 # build
 bin/
