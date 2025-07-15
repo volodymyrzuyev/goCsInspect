@@ -36,11 +36,11 @@ type updater struct {
 	l *slog.Logger
 }
 
-func NewFileUpdater(
+func NewUpdater(
 	updateInterval time.Duration,
 	autoUpdate bool,
 	languageFilePath, gameItemsPath string,
-	fileDownloader Downloader,
+	downloader Downloader,
 ) Updater {
 
 	fu := &updater{
@@ -49,7 +49,7 @@ func NewFileUpdater(
 		languagePath:   languageFilePath,
 		gameItemsPath:  gameItemsPath,
 
-		f: fileDownloader,
+		f: downloader,
 		l: slog.Default().WithGroup("FileUpdater"),
 	}
 

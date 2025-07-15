@@ -34,14 +34,14 @@ func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.
 	mainLogger := slog.Default().WithGroup("Main")
 
 	fileDownloader := filedownloader.NewFileDownloader()
-	fileManager := gamefiles.NewFileUpdater(
+	updater := gamefiles.NewUpdater(
 		cfg.GameFilesAutoUpdateInverval,
 		cfg.AutoUpdateGameFiles,
 		cfg.GameLanguageLocation,
 		cfg.GameItemsLocation,
 		fileDownloader,
 	)
-	gameItems, err := fileManager.UpdateFiles()
+	gameItems, err := updater.UpdateFiles()
 	if err != nil {
 		mainLogger.Error("unable to generate new game items, stoping", "error", err)
 		os.Exit(1)
@@ -51,7 +51,7 @@ func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.
 		mainLogger.Error("unable to create new item detailer, stoping")
 		os.Exit(1)
 	}
-	fileManager.RegisterDetailer(det)
+	updater.RegisterDetailer(det)
 
 	cm, err := clientmanagement.New(
 		cfg.RequestTTl,
