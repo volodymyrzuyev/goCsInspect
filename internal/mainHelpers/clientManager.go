@@ -5,11 +5,12 @@ import (
 	"os"
 
 	filedownloader "github.com/volodymyrzuyev/goCsInspect/internal/fileDownloader"
-	storage "github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
+	sqlite "github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/gamefileupdater"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
 func InitDefaultClientManager(
@@ -18,11 +19,30 @@ func InitDefaultClientManager(
 	cleanLogger *slog.Logger,
 ) clientmanagement.ClientManager {
 
-	storage, err := storage.NewSQLiteStore(cfg.DatabaseString, cleanLogger)
+	storage, err := sqlite.NewSQLiteStore(cfg.DatabaseString, cleanLogger)
 	if err != nil {
 		mainLogger.Error("unable to connect to database, stoping", "error", err)
 		os.Exit(1)
 	}
+
+	return InitClientManager(storage, cfg, mainLogger, cleanLogger)
+}
+
+func InitClientManagerNoStorage(
+	cfg config.Config,
+	mainLogger *slog.Logger,
+	cleanLogger *slog.Logger,
+) clientmanagement.ClientManager {
+
+	return InitClientManager(&dummyStorage{}, cfg, mainLogger, cleanLogger)
+}
+
+func InitClientManager(
+	str storage.Storage,
+	cfg config.Config,
+	mainLogger *slog.Logger,
+	cleanLogger *slog.Logger,
+) clientmanagement.ClientManager {
 
 	fileDownloader := filedownloader.NewFileDownloader(cleanLogger)
 	fileManager := gamefileupdater.NewFileUpdater(
@@ -49,7 +69,7 @@ func InitDefaultClientManager(
 		cfg.RequestTTl,
 		cfg.ClientCooldown,
 		det,
-		storage,
+		str,
 		cleanLogger,
 	)
 	if err != nil {

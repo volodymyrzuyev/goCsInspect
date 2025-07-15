@@ -6,6 +6,8 @@ import (
 	"runtime"
 )
 
+var DataToFetchProtosLocation = filepath.Join(GetTestDirectory(),"protoFetchData.yaml")
+
 func GetTestDirectory() string {
 	_, fileName, _, ok := runtime.Caller(0)
 	if !ok {
