@@ -38,13 +38,13 @@ type inspectClient struct {
 	client *steam.Client
 
 	cooldown  time.Duration
-	creds     creds.Credentials
+	creds     creds.Account
 	gcHandler gcHandler.GcHandler
 	l         *slog.Logger
 }
 
 func NewInspectClient(
-	creds creds.Credentials,
+	creds creds.Account,
 	cooldown time.Duration,
 	gcHandler gcHandler.GcHandler,
 ) (InspectClient, error) {

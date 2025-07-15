@@ -13,7 +13,7 @@ import (
 type Config struct {
 	RequestTTl     time.Duration
 	ClientCooldown time.Duration
-	Accounts       []creds.Credentials
+	Accounts       []creds.Account
 
 	GameItemsLocation           string
 	GameLanguageLocation        string
@@ -67,7 +67,7 @@ var (
 	DefaultConfig = Config{
 		RequestTTl:     3 * time.Second,
 		ClientCooldown: 1*time.Second + 100*time.Millisecond,
-		Accounts:       []creds.Credentials{},
+		Accounts:       []creds.Account{},
 
 		GameItemsLocation:           common.GetAbsolutePath("game_files/items_game.txt"),
 		GameLanguageLocation:        common.GetAbsolutePath("game_files/csgo_english.txt"),

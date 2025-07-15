@@ -7,14 +7,14 @@ import (
 	twoFA "github.com/bbqtd/go-steam-authenticator"
 )
 
-type Credentials struct {
+type Account struct {
 	Username      string
 	Password      string
 	TwoFactorCode string
 	SharedSecret  string
 }
 
-func (c Credentials) Validate() (err error) {
+func (c Account) Validate() (err error) {
 	if c.Username == "" || c.Password == "" || (c.TwoFactorCode == "" && c.SharedSecret == "") {
 		return errors.ErrInsufficientCredentials
 	}
@@ -22,7 +22,7 @@ func (c Credentials) Validate() (err error) {
 	return
 }
 
-func (c Credentials) Get2FC() (code string, err error) {
+func (c Account) Get2FC() (code string, err error) {
 	code = c.TwoFactorCode
 
 	if code == "" {
@@ -35,7 +35,7 @@ func (c Credentials) Get2FC() (code string, err error) {
 	return
 }
 
-func (c Credentials) GenerateLogOnDetails() (steam.LogOnDetails, error) {
+func (c Account) GenerateLogOnDetails() (steam.LogOnDetails, error) {
 	err := c.Validate()
 	if err != nil {
 		return steam.LogOnDetails{}, err

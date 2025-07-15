@@ -18,7 +18,7 @@ import (
 )
 
 type Manager interface {
-	AddClient(credentials creds.Credentials) error
+	AddClient(credentials creds.Account) error
 	InspectSkin(params inspect.Params) (*item.Item, error)
 	InspectSkinWithCtx(ctx context.Context, params inspect.Params) (*item.Item, error)
 	GetProto(params inspect.Params) (*protobuf.CEconItemPreviewDataBlock, error)
@@ -74,7 +74,7 @@ func NewClientManager(
 	}, nil
 }
 
-func (m *manager) AddClient(credentials creds.Credentials) error {
+func (m *manager) AddClient(credentials creds.Account) error {
 	newClient, err := client.NewInspectClient(credentials, m.clientCooldown, m.gcHandler)
 	if err != nil {
 		return err
