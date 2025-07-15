@@ -16,7 +16,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 )
 
-type InspectClient interface {
+type Client interface {
 	IsLoggedIn() bool
 	IsAvailable() bool
 	Username() string
@@ -43,11 +43,11 @@ type inspectClient struct {
 	l         *slog.Logger
 }
 
-func NewInspectClient(
+func New(
 	creds creds.Account,
 	cooldown time.Duration,
 	gcHandler gcHandler.GcHandler,
-) (InspectClient, error) {
+) (Client, error) {
 	if _, err := creds.GenerateLogOnDetails(); err != nil {
 		slog.Error("invalid client credentials")
 		return nil, err

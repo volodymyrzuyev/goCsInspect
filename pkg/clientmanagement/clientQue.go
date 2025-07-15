@@ -30,7 +30,7 @@ func (c *clientQue) runJob(j job) {
 
 	for range len {
 		c.mu.Lock()
-		cli := c.que.Dequeue().(client.InspectClient)
+		cli := c.que.Dequeue().(client.Client)
 		c.que.Enqueue(cli)
 		c.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (c *clientQue) runJob(j job) {
 	c.runJob(j)
 }
 
-func (c *clientQue) addClient(cli client.InspectClient) {
+func (c *clientQue) addClient(cli client.Client) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.que.Enqueue(cli)

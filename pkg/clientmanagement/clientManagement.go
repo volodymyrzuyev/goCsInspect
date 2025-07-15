@@ -75,7 +75,7 @@ func NewClientManager(
 }
 
 func (m *manager) AddClient(credentials creds.Account) error {
-	newClient, err := client.NewInspectClient(credentials, m.clientCooldown, m.gcHandler)
+	newClient, err := client.New(credentials, m.clientCooldown, m.gcHandler)
 	if err != nil {
 		return err
 	}
