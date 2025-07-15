@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/golang-collections/collections/queue"
-	"github.com/volodymyrzuyev/goCsInspect/internal/client"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/client"
 )
 
 type clientQue struct {

@@ -7,10 +7,8 @@ import (
 	"time"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/internal/client"
-	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/client"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
 	inspect "github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
@@ -18,7 +16,7 @@ import (
 )
 
 type Manager interface {
-	AddClient(credentials creds.Account) error
+	AddClient(client client.Client) error
 	InspectSkin(params inspect.Params) (*item.Item, error)
 	InspectSkinWithCtx(ctx context.Context, params inspect.Params) (*item.Item, error)
 	GetProto(params inspect.Params) (*protobuf.CEconItemPreviewDataBlock, error)
@@ -36,7 +34,6 @@ type manager struct {
 	storage  storage.Storage
 	l        *slog.Logger
 
-	gcHandler gcHandler.GcHandler
 	clientQue *clientQue
 	jobQue    *jobQue
 }
@@ -56,7 +53,6 @@ func New(
 		return nil, errors.ErrInvalidManagerConfig
 	}
 
-	gcHandler := gcHandler.NewGcHandler()
 	clientList := newClientQue(clientCooldown)
 	jobQue := newJobQue(clientList)
 
@@ -68,24 +64,18 @@ func New(
 		storage:  storage,
 		detailer: detailer,
 
-		gcHandler: gcHandler,
 		clientQue: clientList,
 		jobQue:    jobQue,
 	}, nil
 }
 
-func (m *manager) AddClient(credentials creds.Account) error {
-	newClient, err := client.New(credentials, m.clientCooldown, m.gcHandler)
+func (m *manager) AddClient(client client.Client) error {
+	err := client.LogIn()
 	if err != nil {
 		return err
 	}
 
-	err = newClient.LogIn()
-	if err != nil {
-		return err
-	}
-
-	m.clientQue.addClient(newClient)
+	m.clientQue.addClient(client)
 	return nil
 }
 

@@ -101,16 +101,7 @@ func main() {
 
 	cm := mainhelpers.InitClientManagerNoStorage(cfg)
 
-	for _, a := range cfg.Accounts {
-		err := cm.AddClient(a)
-		if err != nil {
-			lt.Warn(
-				fmt.Sprintf("client %v unable to login, won't be used", a.Username),
-				"error",
-				err,
-			)
-		}
-	}
+	mainhelpers.CreateAndEnrollClients(cfg, cm)
 
 	var wg sync.WaitGroup
 	for name, test := range dataFetchingResources {

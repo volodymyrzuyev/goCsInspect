@@ -16,21 +16,6 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 )
 
-type Client interface {
-	IsLoggedIn() bool
-	IsAvailable() bool
-	Username() string
-
-	LogOff()
-	LogIn() error
-	Reconnect() error
-
-	InspectItem(
-		ctx context.Context,
-		params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest,
-	) (*protobuf.CEconItemPreviewDataBlock, error)
-}
-
 type inspectClient struct {
 	lastUsed time.Time
 
@@ -43,11 +28,7 @@ type inspectClient struct {
 	l         *slog.Logger
 }
 
-func New(
-	creds creds.Account,
-	cooldown time.Duration,
-	gcHandler gcHandler.GcHandler,
-) (Client, error) {
+func New(creds creds.Account, cooldown time.Duration, gc gcHandler.GcHandler) (Client, error) {
 	if _, err := creds.GenerateLogOnDetails(); err != nil {
 		slog.Error("invalid client credentials")
 		return nil, err
@@ -59,7 +40,7 @@ func New(
 
 		cooldown:  cooldown,
 		creds:     creds,
-		gcHandler: gcHandler,
+		gcHandler: gc,
 		l:         slog.Default().WithGroup("Client." + creds.Username),
 	}
 

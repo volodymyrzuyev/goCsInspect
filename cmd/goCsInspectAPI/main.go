@@ -33,20 +33,10 @@ func main() {
 
 	l := slog.New(logger.NewHandler(cfg.GetLogLevel(), os.Stdout))
 	slog.SetDefault(l)
-	lt := l.WithGroup("Main")
 
 	cm := mainhelpers.InitDefaultClientManager(cfg)
 
-	for _, cli := range cfg.Accounts {
-		err := cm.AddClient(cli)
-		if err != nil {
-			lt.Warn(
-				fmt.Sprintf("client %v unable to login, won't be used", cli.Username),
-				"error",
-				err,
-			)
-		}
-	}
+	mainhelpers.CreateAndEnrollClients(cfg, cm)
 
 	server := web.NewServer(cm)
 
