@@ -11,13 +11,13 @@ import (
 
 var InspectParamsLocation = filepath.Join(GetTestDirectory(), "inspect")
 
-func GetInspectParams() map[string]inspect.Parameters {
+func GetInspectParams() map[string]inspect.Params {
 	fs, err := os.ReadDir(InspectParamsLocation)
 	if err != nil {
 		panic(err)
 	}
 
-	ret := make(map[string]inspect.Parameters)
+	ret := make(map[string]inspect.Params)
 
 	for _, f := range fs {
 		if f.IsDir() {
@@ -31,7 +31,7 @@ func GetInspectParams() map[string]inspect.Parameters {
 			panic(err)
 		}
 
-		params := inspect.Parameters{}
+		params := inspect.Params{}
 		err = yaml.Unmarshal(toParse, &params)
 		if err != nil {
 			panic(err)

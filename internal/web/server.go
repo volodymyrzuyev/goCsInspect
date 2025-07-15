@@ -13,7 +13,7 @@ import (
 
 type Server struct {
 	echo *echo.Echo
-	m   clientmanagement.Manager
+	m    clientmanagement.Manager
 	l    *slog.Logger
 }
 
@@ -24,7 +24,7 @@ func NewServer(clientManager clientmanagement.Manager) *Server {
 
 	s := &Server{
 		echo: e,
-		m:   clientManager,
+		m:    clientManager,
 		l:    slog.Default().WithGroup("Web"),
 	}
 
@@ -47,7 +47,7 @@ func (s *Server) root(c echo.Context) error {
 	inspectLink := querry.Get("url")
 	paramd := querry.Get("d")
 
-	var params inspect.Parameters
+	var params inspect.Params
 	var err error
 
 	if inspectLink != "" {

@@ -19,12 +19,12 @@ import (
 
 type Manager interface {
 	AddClient(credentials creds.Credentials) error
-	InspectSkin(params inspect.Parameters) (*item.Item, error)
-	InspectSkinWithCtx(ctx context.Context, params inspect.Parameters) (*item.Item, error)
-	GetProto(params inspect.Parameters) (*protobuf.CEconItemPreviewDataBlock, error)
+	InspectSkin(params inspect.Params) (*item.Item, error)
+	InspectSkinWithCtx(ctx context.Context, params inspect.Params) (*item.Item, error)
+	GetProto(params inspect.Params) (*protobuf.CEconItemPreviewDataBlock, error)
 	GetProtoWithCtx(
 		ctx context.Context,
-		params inspect.Parameters,
+		params inspect.Params,
 	) (*protobuf.CEconItemPreviewDataBlock, error)
 }
 
@@ -91,7 +91,7 @@ func (m *manager) AddClient(credentials creds.Credentials) error {
 
 func (m *manager) GetProtoWithCtx(
 	ctx context.Context,
-	params inspect.Parameters,
+	params inspect.Params,
 ) (*protobuf.CEconItemPreviewDataBlock, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, m.requestTTl)
@@ -131,7 +131,7 @@ func (m *manager) GetProtoWithCtx(
 }
 
 func (m *manager) GetProto(
-	params inspect.Parameters,
+	params inspect.Params,
 ) (*protobuf.CEconItemPreviewDataBlock, error) {
 
 	return m.GetProtoWithCtx(context.TODO(), params)
@@ -139,7 +139,7 @@ func (m *manager) GetProto(
 
 func (m *manager) InspectSkinWithCtx(
 	ctx context.Context,
-	params inspect.Parameters,
+	params inspect.Params,
 ) (*item.Item, error) {
 
 	proto, err := m.GetProtoWithCtx(ctx, params)
@@ -151,14 +151,14 @@ func (m *manager) InspectSkinWithCtx(
 	return m.detailer.DetailProto(proto)
 }
 
-func (m *manager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
+func (m *manager) InspectSkin(params inspect.Params) (*item.Item, error) {
 	ctx := context.TODO()
 	return m.InspectSkinWithCtx(ctx, params)
 }
 
 func (m *manager) storeToStorage(
 	ctx context.Context,
-	params inspect.Parameters,
+	params inspect.Params,
 	proto *protobuf.CEconItemPreviewDataBlock,
 ) {
 	err := m.storage.StoreItem(ctx, params, proto)

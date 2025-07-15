@@ -169,7 +169,7 @@ func storeInspectParams(
 	name string,
 	r resourceFetcher,
 	repProto *protobuf.CEconItemPreviewDataBlock,
-	params inspect.Parameters,
+	params inspect.Params,
 	lt *slog.Logger,
 ) {
 	storeLocation := filepath.Join(testdata.InspectParamsLocation, name+".yaml")
