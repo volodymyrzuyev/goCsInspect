@@ -11,9 +11,9 @@ import (
 	"github.com/Philipp15b/go-steam/v3/protocol/gamecoordinator"
 	"github.com/Philipp15b/go-steam/v3/protocol/steamlang"
 
-	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
+	gameC "github.com/volodymyrzuyev/goCsInspect/pkg/gamecordinator"
 )
 
 type inspectClient struct {
@@ -24,11 +24,11 @@ type inspectClient struct {
 
 	cooldown  time.Duration
 	creds     creds.Account
-	gcHandler gcHandler.GcHandler
+	gcHandler gameC.Handler
 	l         *slog.Logger
 }
 
-func New(creds creds.Account, cooldown time.Duration, gc gcHandler.GcHandler) (Client, error) {
+func New(creds creds.Account, cooldown time.Duration, gc gameC.Handler) (Client, error) {
 	if _, err := creds.GenerateLogOnDetails(); err != nil {
 		slog.Error("invalid client credentials")
 		return nil, err

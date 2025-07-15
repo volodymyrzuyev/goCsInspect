@@ -3,15 +3,15 @@ package mainhelpers
 import (
 	"log/slog"
 
-	"github.com/volodymyrzuyev/goCsInspect/internal/gcHandler"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/client"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/gamecordinator"
 )
 
 func CreateAndEnrollClients(cfg config.Config, cm clientmanagement.Manager) {
 	mainLogger := slog.Default().WithGroup("Main")
-	gc := gcHandler.NewGcHandler()
+	gc := gamecordinator.NewGcHandler()
 	for _, cli := range cfg.Accounts {
 		cli, err := client.New(cli, cfg.ClientCooldown, gc)
 		if err != nil {

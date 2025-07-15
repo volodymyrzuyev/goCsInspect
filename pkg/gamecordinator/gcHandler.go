@@ -1,4 +1,4 @@
-package gcHandler
+package gamecordinator
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type GcHandler interface {
+type Handler interface {
 	HandleGCPacket(packet *gamecoordinator.GCPacket)
 	GetResponse(
 		ctx context.Context,
@@ -20,7 +20,7 @@ type GcHandler interface {
 	) (*csProto.CEconItemPreviewDataBlock, error)
 }
 
-type gcHandler struct {
+type handler struct {
 	mu               sync.Mutex
 	responses        map[uint64]*csProto.CEconItemPreviewDataBlock
 	pendingResponses map[uint64]chan *csProto.CEconItemPreviewDataBlock
@@ -28,8 +28,8 @@ type gcHandler struct {
 	l *slog.Logger
 }
 
-func NewGcHandler() GcHandler {
-	return &gcHandler{
+func NewGcHandler() Handler {
+	return &handler{
 		pendingResponses: make(map[uint64]chan *csProto.CEconItemPreviewDataBlock),
 		responses:        make(map[uint64]*csProto.CEconItemPreviewDataBlock),
 
@@ -42,24 +42,24 @@ const (
 	inspectResponseProtoID = 9157
 )
 
-func (g *gcHandler) storeResponse(itemInfo *csProto.CEconItemPreviewDataBlock) {
+func (h *handler) storeResponse(itemInfo *csProto.CEconItemPreviewDataBlock) {
 	itemId := itemInfo.GetItemid()
 
-	g.mu.Lock()
-	defer g.mu.Unlock()
+	h.mu.Lock()
+	defer h.mu.Unlock()
 
 	// is waiting for response, send it down chanel
-	if ch, ok := g.pendingResponses[itemId]; ok {
+	if ch, ok := h.pendingResponses[itemId]; ok {
 		ch <- itemInfo
 		close(ch)
-		delete(g.pendingResponses, itemId)
+		delete(h.pendingResponses, itemId)
 	} else {
 		// update response map
-		g.responses[itemId] = itemInfo
+		h.responses[itemId] = itemInfo
 	}
 }
 
-func (g *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
+func (h *handler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	// vertify right type of packet
 	if packet.AppId != csAppID || packet.MsgType != inspectResponseProtoID {
 		return
@@ -69,7 +69,7 @@ func (g *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 	var msg protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockResponse
 	err := proto.Unmarshal(packet.Body, &msg)
 	if err != nil {
-		g.l.Debug(
+		h.l.Debug(
 			"could not unmarshal gcPacket",
 			"packet_AppId", packet.AppId,
 			"packet_MsgType", packet.MsgType,
@@ -78,53 +78,53 @@ func (g *gcHandler) HandleGCPacket(packet *gamecoordinator.GCPacket) {
 		return
 	}
 
-	g.l.Debug(
+	h.l.Debug(
 		"got item preview block",
 		"packet_AppId", packet.AppId,
 		"packet_MsgType", packet.MsgType,
 		"item_id", msg.Iteminfo.GetItemid(),
 	)
 
-	g.storeResponse(msg.Iteminfo)
+	h.storeResponse(msg.Iteminfo)
 }
 
-func (g *gcHandler) GetResponse(
+func (h *handler) GetResponse(
 	ctx context.Context,
 	itemId uint64,
 ) (*csProto.CEconItemPreviewDataBlock, error) {
 
-	g.mu.Lock()
-	g.l.Debug("got request for item preview block", "item_id", itemId)
+	h.mu.Lock()
+	h.l.Debug("got request for item preview block", "item_id", itemId)
 
 	// if response is in the response map, return it
-	if response, ok := g.responses[itemId]; ok {
-		delete(g.responses, itemId)
-		g.mu.Unlock()
-		g.l.Debug("item preview block previously received", "item_id", itemId)
+	if response, ok := h.responses[itemId]; ok {
+		delete(h.responses, itemId)
+		h.mu.Unlock()
+		h.l.Debug("item preview block previously received", "item_id", itemId)
 		return response, nil
 	}
 
 	// else make a chanel for the response to come to
 	ch := make(chan *csProto.CEconItemPreviewDataBlock)
-	g.pendingResponses[itemId] = ch
+	h.pendingResponses[itemId] = ch
 	// unlock mutex
-	g.mu.Unlock()
-	g.l.Debug("waiting for preview block from gc", "item_id", itemId)
+	h.mu.Unlock()
+	h.l.Debug("waiting for preview block from gc", "item_id", itemId)
 
 	// wait for response, or timout
 	select {
 	case response := <-ch:
-		g.l.Debug("got item preview block", "item_id", itemId)
+		h.l.Debug("got item preview block", "item_id", itemId)
 		return response, nil
 
 	case <-ctx.Done():
 		// if no response in allowed time, clean up the chan map
-		g.mu.Lock()
-		if chP, ok := g.pendingResponses[itemId]; ok && chP == ch {
-			delete(g.pendingResponses, itemId)
+		h.mu.Lock()
+		if chP, ok := h.pendingResponses[itemId]; ok && chP == ch {
+			delete(h.pendingResponses, itemId)
 		}
-		g.mu.Unlock()
-		g.l.Error("item preview block request timed out", "item_id", itemId)
+		h.mu.Unlock()
+		h.l.Error("item preview block request timed out", "item_id", itemId)
 
 		return nil, errors.ErrClientTimeout
 	}

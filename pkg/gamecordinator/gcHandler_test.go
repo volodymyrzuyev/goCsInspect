@@ -1,4 +1,4 @@
-package gcHandler
+package gamecordinator
 
 import (
 	"context"
@@ -18,7 +18,7 @@ func TestStoreResponse(t *testing.T) {
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
 	gcHandlerI := NewGcHandler()
-	gc := gcHandlerI.(*gcHandler)
+	gc := gcHandlerI.(*handler)
 
 	cleanUp := func(itemId uint64) {
 		gc.mu.Lock()
@@ -63,7 +63,7 @@ func TestGetResponse(t *testing.T) {
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
 	gcHandlerI := NewGcHandler()
-	gc := gcHandlerI.(*gcHandler)
+	gc := gcHandlerI.(*handler)
 
 	t.Run("Response Received Before Data Requested", func(t *testing.T) {
 		gc.storeResponse(dummyProto)
