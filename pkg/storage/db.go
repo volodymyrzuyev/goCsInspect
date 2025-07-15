@@ -4,17 +4,17 @@ import (
 	"context"
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 )
 
 type Storage interface {
 	StoreItem(
 		ctx context.Context,
-		inspectParams inspectParams.InspectParameters,
+		inspectParams inspect.Parameters,
 		proto *protobuf.CEconItemPreviewDataBlock,
 	) error
 	GetItem(
 		ctx context.Context,
-		inspectParams inspectParams.InspectParameters,
+		inspectParams inspect.Parameters,
 	) (*protobuf.CEconItemPreviewDataBlock, error)
 }

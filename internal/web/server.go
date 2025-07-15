@@ -8,7 +8,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 )
 
 type Server struct {
@@ -47,11 +47,11 @@ func (s *Server) root(c echo.Context) error {
 	inspectLink := querry.Get("url")
 	paramd := querry.Get("d")
 
-	var params inspectParams.InspectParameters
+	var params inspect.Parameters
 	var err error
 
 	if inspectLink != "" {
-		params, _ = inspectParams.ParseInspectLink(inspectLink)
+		params, _ = inspect.ParseInspectLink(inspectLink)
 		err = params.Validate()
 		if err != nil {
 			slog.Error(

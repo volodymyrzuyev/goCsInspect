@@ -13,7 +13,7 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
-	t "github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
+	t "github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 )
 
 type Sqlite struct {
@@ -50,7 +50,7 @@ func NewSQLiteStore(dbPath string, l *slog.Logger) (storage.Storage, error) {
 }
 
 func getDBProto(
-	params t.InspectParameters,
+	params t.Parameters,
 	proto *proto.CEconItemPreviewDataBlock,
 ) sqlc.InsertItemParams {
 	return sqlc.InsertItemParams{
@@ -103,7 +103,7 @@ func getDBModProto(protos []*proto.CEconItemPreviewDataBlock_Sticker) []sqlc.Ins
 
 func (s *Sqlite) StoreItem(
 	ctx context.Context,
-	params t.InspectParameters,
+	params t.Parameters,
 	proto *proto.CEconItemPreviewDataBlock,
 ) error {
 	dbItem := getDBProto(params, proto)
@@ -233,7 +233,7 @@ func (s *Sqlite) assembleItem(
 
 func (s *Sqlite) GetItem(
 	ctx context.Context,
-	params t.InspectParameters,
+	params t.Parameters,
 ) (*proto.CEconItemPreviewDataBlock, error) {
 	itemDbParams := sqlc.GetItemParams{
 		M:      fmt.Sprintf("%v", params.M),

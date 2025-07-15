@@ -12,18 +12,15 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/creds"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
+	inspect "github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/item"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/inspectParams"
 )
 
 type ClientManager interface {
 	AddClient(credentials creds.Credentials) error
-	InspectSkin(params inspectParams.InspectParameters) (*item.Item, error)
-	InspectSkinWithCtx(
-		ctx context.Context,
-		params inspectParams.InspectParameters,
-	) (*item.Item, error)
+	InspectSkin(params inspect.Parameters) (*item.Item, error)
+	InspectSkinWithCtx(ctx context.Context, params inspect.Parameters) (*item.Item, error)
 }
 
 type clientManager struct {
@@ -88,15 +85,16 @@ func (c *clientManager) AddClient(credentials creds.Credentials) error {
 	return nil
 }
 
-func (c *clientManager) InspectSkin(params inspectParams.InspectParameters) (*item.Item, error) {
+func (c *clientManager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
 	ctx := context.TODO()
 	return c.InspectSkinWithCtx(ctx, params)
 }
 
 func (c *clientManager) InspectSkinWithCtx(
 	ctx context.Context,
-	params inspectParams.InspectParameters,
+	params inspect.Parameters,
 ) (*item.Item, error) {
+
 	ctx, cancel := context.WithTimeout(ctx, c.requestTTl)
 	defer cancel()
 
@@ -135,7 +133,7 @@ func (c *clientManager) InspectSkinWithCtx(
 
 func (c *clientManager) storeToStorage(
 	ctx context.Context,
-	params inspectParams.InspectParameters,
+	params inspect.Parameters,
 	proto *protobuf.CEconItemPreviewDataBlock,
 ) {
 	err := c.storage.StoreItem(ctx, params, proto)
