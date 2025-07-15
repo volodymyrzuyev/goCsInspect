@@ -35,7 +35,7 @@ func main() {
 	slog.SetDefault(l)
 	lt := l.WithGroup("Main")
 
-	cm := mainhelpers.InitDefaultClientManager(cfg, lt, l)
+	cm := mainhelpers.InitDefaultClientManager(cfg)
 
 	for _, cli := range cfg.Accounts {
 		err := cm.AddClient(cli)
@@ -48,7 +48,7 @@ func main() {
 		}
 	}
 
-	server := web.NewServer(cm, l)
+	server := web.NewServer(cm)
 
 	server.Run(cfg.BindIP)
 }

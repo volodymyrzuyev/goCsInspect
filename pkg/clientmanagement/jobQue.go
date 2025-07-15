@@ -29,8 +29,12 @@ type jobQue struct {
 	l         *slog.Logger
 }
 
-func newJobQue(c *clientQue, l *slog.Logger) *jobQue {
-	q := &jobQue{que: queue.New(), clientQue: c, l: l.WithGroup("JobQue")}
+func newJobQue(c *clientQue) *jobQue {
+	q := &jobQue{
+		que:       queue.New(),
+		clientQue: c,
+		l:         slog.Default().WithGroup("ClientManagment.JobQue"),
+	}
 
 	go q.runQue()
 

@@ -99,7 +99,7 @@ func main() {
 		cfg.RequestTTl = estimatedTotalTime
 	}
 
-	cm := mainhelpers.InitClientManagerNoStorage(cfg, lt, l)
+	cm := mainhelpers.InitClientManagerNoStorage(cfg)
 
 	for _, a := range cfg.Accounts {
 		err := cm.AddClient(a)

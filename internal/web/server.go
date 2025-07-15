@@ -17,7 +17,7 @@ type Server struct {
 	l    *slog.Logger
 }
 
-func NewServer(clientManager clientmanagement.ClientManager, l *slog.Logger) *Server {
+func NewServer(clientManager clientmanagement.ClientManager) *Server {
 	e := echo.New()
 	e.HideBanner = true
 	e.HidePort = true
@@ -25,7 +25,7 @@ func NewServer(clientManager clientmanagement.ClientManager, l *slog.Logger) *Se
 	s := &Server{
 		echo: e,
 		cm:   clientManager,
-		l:    l.WithGroup("Web"),
+		l:    slog.Default().WithGroup("Web"),
 	}
 
 	e.GET("/", s.root)

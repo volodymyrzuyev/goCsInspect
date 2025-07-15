@@ -12,12 +12,12 @@ import (
 )
 
 func TestStoreResponse(t *testing.T) {
-	l := slog.New(slog.DiscardHandler)
+	slog.SetDefault(slog.New(slog.DiscardHandler))
 
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(l)
+	gcHandlerI := NewGcHandler()
 	gc := gcHandlerI.(*gcHandler)
 
 	cleanUp := func(itemId uint64) {
@@ -57,12 +57,12 @@ func TestStoreResponse(t *testing.T) {
 }
 
 func TestGetResponse(t *testing.T) {
-	l := slog.New(slog.DiscardHandler)
+	slog.SetDefault(slog.New(slog.DiscardHandler))
 
 	itemId := uint64(1337)
 	dummyProto := &csProto.CEconItemPreviewDataBlock{Itemid: &itemId}
 
-	gcHandlerI := NewGcHandler(l)
+	gcHandlerI := NewGcHandler()
 	gc := gcHandlerI.(*gcHandler)
 
 	t.Run("Response Received Before Data Requested", func(t *testing.T) {

@@ -28,13 +28,12 @@ type gcHandler struct {
 	l *slog.Logger
 }
 
-func NewGcHandler(l *slog.Logger) GcHandler {
-	l = l.WithGroup("GcHandler")
+func NewGcHandler() GcHandler {
 	return &gcHandler{
 		pendingResponses: make(map[uint64]chan *csProto.CEconItemPreviewDataBlock),
 		responses:        make(map[uint64]*csProto.CEconItemPreviewDataBlock),
 
-		l: l,
+		l: slog.Default().WithGroup("GcHandler"),
 	}
 }
 

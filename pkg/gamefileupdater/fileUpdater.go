@@ -41,7 +41,6 @@ func NewFileUpdater(
 	autoUpdate bool,
 	languageFilePath, gameItemsPath string,
 	fileDownloader FileDownloader,
-	l *slog.Logger,
 ) FileUpdater {
 
 	fu := &fileUpdater{
@@ -51,7 +50,7 @@ func NewFileUpdater(
 		gameItemsPath:  gameItemsPath,
 
 		f: fileDownloader,
-		l: l.WithGroup("FileUpdater"),
+		l: slog.Default().WithGroup("FileUpdater"),
 	}
 
 	return fu

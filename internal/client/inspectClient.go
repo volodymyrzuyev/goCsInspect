@@ -47,7 +47,7 @@ func NewInspectClient(
 	creds creds.Credentials,
 	cooldown time.Duration,
 	gcHandler gcHandler.GcHandler,
-	l *slog.Logger) (InspectClient, error) {
+) (InspectClient, error) {
 	if _, err := creds.GenerateLogOnDetails(); err != nil {
 		slog.Error("invalid client credentials")
 		return nil, err
@@ -60,7 +60,7 @@ func NewInspectClient(
 		cooldown:  cooldown,
 		creds:     creds,
 		gcHandler: gcHandler,
-		l:         l.WithGroup(creds.Username),
+		l:         slog.Default().WithGroup("Client." + creds.Username),
 	}
 
 	return newClient, nil

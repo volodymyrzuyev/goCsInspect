@@ -46,20 +46,19 @@ func NewClientManager(
 	clientCooldown time.Duration,
 	detailer detailer.Detailer,
 	storage storage.Storage,
-	l *slog.Logger,
 ) (ClientManager, error) {
 
-	lcm := l.WithGroup("ClientManagment")
+	lcm := slog.Default().WithGroup("ClientManagment")
 
 	if detailer == nil || storage == nil {
-		l.Error("Detailler and storage are needed for ClientManager",
+		lcm.Error("Detailler and storage are needed for ClientManager",
 			"detailer_exits", detailer != nil, "storage_exists", storage != nil)
 		return nil, errors.ErrInvalidManagerConfig
 	}
 
-	gcHandler := gcHandler.NewGcHandler(l)
-	clientList := newClientQue(clientCooldown, l)
-	jobQue := newJobQue(clientList, l)
+	gcHandler := gcHandler.NewGcHandler()
+	clientList := newClientQue(clientCooldown)
+	jobQue := newJobQue(clientList)
 
 	return &clientManager{
 		clientCooldown: clientCooldown,
@@ -76,7 +75,7 @@ func NewClientManager(
 }
 
 func (c *clientManager) AddClient(credentials creds.Credentials) error {
-	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler, c.l)
+	newClient, err := client.NewInspectClient(credentials, c.clientCooldown, c.gcHandler)
 	if err != nil {
 		return err
 	}
@@ -137,7 +136,6 @@ func (c *clientManager) GetProto(
 
 	return c.GetProtoWithCtx(context.TODO(), params)
 }
-
 
 func (c *clientManager) InspectSkinWithCtx(
 	ctx context.Context,

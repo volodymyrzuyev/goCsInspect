@@ -29,12 +29,12 @@ type fileDownloader struct {
 	l *slog.Logger
 }
 
-func NewFileDownloader(l *slog.Logger) gfu.FileDownloader {
+func NewFileDownloader() gfu.FileDownloader {
 
 	return &fileDownloader{
 		client: github.NewClient(nil),
 
-		l: l.WithGroup("FileDownloader"),
+		l: slog.Default().WithGroup("FileDownloader"),
 	}
 }
 

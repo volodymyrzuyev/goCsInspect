@@ -12,8 +12,8 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite/sql/sqlc"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 	t "github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
 type Sqlite struct {
@@ -24,8 +24,8 @@ type Sqlite struct {
 	q  *sqlc.Queries
 }
 
-func NewSQLiteStore(dbPath string, l *slog.Logger) (storage.Storage, error) {
-	l = l.WithGroup("Storage")
+func NewSQLiteStore(dbPath string) (storage.Storage, error) {
+	l := slog.Default().WithGroup("Storage")
 
 	db, err := sql.Open("sqlite3", dbPath)
 	if err != nil {

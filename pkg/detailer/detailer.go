@@ -24,8 +24,8 @@ type detailer struct {
 	l        *slog.Logger
 }
 
-func NewDetailerGameFiles(langugeFile, gameItems string, l *slog.Logger) (Detailer, error) {
-	ln := l.WithGroup("Detailer")
+func NewDetailerGameFiles(langugeFile, gameItems string) (Detailer, error) {
+	ln := slog.Default().WithGroup("Detailer")
 
 	languageData, err := parser.Parse(langugeFile)
 	if err != nil {
@@ -45,11 +45,11 @@ func NewDetailerGameFiles(langugeFile, gameItems string, l *slog.Logger) (Detail
 		return nil, err
 	}
 
-	return NewDetailerWithCSItems(allItems, l)
+	return NewDetailerWithCSItems(allItems)
 }
 
-func NewDetailerWithCSItems(items *csgo.Csgo, l *slog.Logger) (Detailer, error) {
-	return &detailer{allItems: items, l: l.WithGroup("Detailer")}, nil
+func NewDetailerWithCSItems(items *csgo.Csgo) (Detailer, error) {
+	return &detailer{allItems: items, l: slog.Default().WithGroup("Detailer")}, nil
 }
 
 func (d *detailer) detailModificationsStickers(item *item.Item) error {

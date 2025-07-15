@@ -13,52 +13,40 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
-func InitDefaultClientManager(
-	cfg config.Config,
-	mainLogger *slog.Logger,
-	cleanLogger *slog.Logger,
-) clientmanagement.ClientManager {
+func InitDefaultClientManager(cfg config.Config) clientmanagement.ClientManager {
+	mainLogger := slog.Default().WithGroup("Main")
 
-	storage, err := sqlite.NewSQLiteStore(cfg.DatabaseString, cleanLogger)
+	storage, err := sqlite.NewSQLiteStore(cfg.DatabaseString)
 	if err != nil {
 		mainLogger.Error("unable to connect to database, stoping", "error", err)
 		os.Exit(1)
 	}
 
-	return InitClientManager(storage, cfg, mainLogger, cleanLogger)
+	return InitClientManager(storage, cfg)
 }
 
-func InitClientManagerNoStorage(
-	cfg config.Config,
-	mainLogger *slog.Logger,
-	cleanLogger *slog.Logger,
-) clientmanagement.ClientManager {
+func InitClientManagerNoStorage(cfg config.Config) clientmanagement.ClientManager {
 
-	return InitClientManager(&dummyStorage{}, cfg, mainLogger, cleanLogger)
+	return InitClientManager(&dummyStorage{}, cfg)
 }
 
-func InitClientManager(
-	str storage.Storage,
-	cfg config.Config,
-	mainLogger *slog.Logger,
-	cleanLogger *slog.Logger,
-) clientmanagement.ClientManager {
+func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.ClientManager {
+	mainLogger := slog.Default().WithGroup("Main")
 
-	fileDownloader := filedownloader.NewFileDownloader(cleanLogger)
+	fileDownloader := filedownloader.NewFileDownloader()
 	fileManager := gamefileupdater.NewFileUpdater(
 		cfg.GameFilesAutoUpdateInverval,
 		cfg.AutoUpdateGameFiles,
 		cfg.GameLanguageLocation,
 		cfg.GameItemsLocation,
 		fileDownloader,
-		cleanLogger,
 	)
 	gameItems, err := fileManager.UpdateFiles()
 	if err != nil {
 		mainLogger.Error("unable to generate new game items, stoping", "error", err)
 		os.Exit(1)
 	}
-	det, err := detailer.NewDetailerWithCSItems(gameItems, cleanLogger)
+	det, err := detailer.NewDetailerWithCSItems(gameItems)
 	if err != nil {
 		mainLogger.Error("unable to create new item detailer, stoping")
 		os.Exit(1)
@@ -70,7 +58,6 @@ func InitClientManager(
 		cfg.ClientCooldown,
 		det,
 		str,
-		cleanLogger,
 	)
 	if err != nil {
 		mainLogger.Error("unable to create new client manager, stoping", "error", err)

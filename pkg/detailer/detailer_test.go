@@ -54,7 +54,7 @@ func getExpected() map[string]*expected {
 }
 
 func TestDetailSkin(t *testing.T) {
-	l := slog.New(slog.DiscardHandler)
+	slog.SetDefault(slog.New(slog.DiscardHandler))
 	detailer, err := NewDetailerGameFiles(
 		filepath.Join(
 			filepath.Join(filepath.Dir(testdata.GetTestDirectory()), "game_files"),
@@ -64,7 +64,6 @@ func TestDetailSkin(t *testing.T) {
 			filepath.Join(filepath.Dir(testdata.GetTestDirectory()), "game_files"),
 			"items_game.txt",
 		),
-		l,
 	)
 	if err != nil {
 		t.Fatalf("could not create detailer %v", err)

@@ -17,8 +17,12 @@ type clientQue struct {
 	l              *slog.Logger
 }
 
-func newClientQue(c time.Duration, l *slog.Logger) *clientQue {
-	return &clientQue{que: queue.New(), clientCooldown: c, l: l.WithGroup("ClientQue")}
+func newClientQue(c time.Duration) *clientQue {
+	return &clientQue{
+		que:            queue.New(),
+		clientCooldown: c,
+		l:              slog.Default().WithGroup("ClientManagment.ClientQue"),
+	}
 }
 
 func (c *clientQue) runJob(j job) {
