@@ -2,21 +2,7 @@ package common
 
 import (
 	"database/sql"
-	"os"
-	"path/filepath"
 )
-
-func GetAbsolutePath(relativePath string) string {
-	if filepath.IsAbs(relativePath) {
-		return relativePath
-	}
-	projectRoot, err := os.Getwd()
-	if err != nil {
-		panic("could not get working directory")
-	}
-
-	return filepath.Join(projectRoot, relativePath)
-}
 
 func Uint64Pointer(i uint64) *uint64 {
 	return &i

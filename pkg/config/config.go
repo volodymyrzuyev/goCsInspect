@@ -27,6 +27,27 @@ type Config struct {
 	BindIP string
 }
 
+func (cfg *Config) VertifyConfig() error {
+	var err error
+
+	cfg.GameItemsLocation = common.GetAbsolutePath(cfg.GameItemsLocation)
+	if err = common.VertifyAndCreateFile(cfg.GameItemsLocation); err != nil {
+		return nil
+	}
+
+	cfg.GameLanguageLocation = common.GetAbsolutePath(cfg.GameLanguageLocation)
+	if err = common.VertifyAndCreateFile(cfg.GameLanguageLocation); err != nil {
+		return nil
+	}
+
+	cfg.DatabaseString = common.GetAbsolutePath(cfg.DatabaseString)
+	if err = common.VertifyAndCreateFile(cfg.DatabaseString); err != nil {
+		return nil
+	}
+
+	return nil
+}
+
 var (
 	DefaultConfig = Config{
 		RequestTTl:     3 * time.Second,
@@ -62,8 +83,19 @@ func ParseConfig(relativePath string) (Config, error) {
 	}
 
 	cfg.GameItemsLocation = common.GetAbsolutePath(cfg.GameItemsLocation)
+	if err = common.VertifyAndCreateFile(cfg.GameItemsLocation); err != nil {
+		return Config{}, nil
+	}
+
 	cfg.GameLanguageLocation = common.GetAbsolutePath(cfg.GameLanguageLocation)
+	if err = common.VertifyAndCreateFile(cfg.GameLanguageLocation); err != nil {
+		return Config{}, nil
+	}
+
 	cfg.DatabaseString = common.GetAbsolutePath(cfg.DatabaseString)
+	if err = common.VertifyAndCreateFile(cfg.DatabaseString); err != nil {
+		return Config{}, nil
+	}
 
 	return cfg, nil
 }
