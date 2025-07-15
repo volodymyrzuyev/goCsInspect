@@ -46,7 +46,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	l := slog.New(logger.NewHandler(cfg.LogLevel, os.Stdout))
+	l := slog.New(logger.NewHandler(cfg.GetLogLevel(), os.Stdout))
 	slog.SetDefault(l)
 	lt := l.WithGroup("Main")
 

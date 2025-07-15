@@ -22,7 +22,7 @@ type Config struct {
 
 	DatabaseString string
 
-	LogLevel slog.Level
+	LogLevel string
 
 	BindIP string
 }
@@ -48,6 +48,21 @@ func (cfg *Config) VertifyConfig() error {
 	return nil
 }
 
+func (cfg *Config) GetLogLevel() slog.Level {
+	switch cfg.LogLevel {
+	case "DEBUG":
+		return slog.LevelDebug
+	case "INFO":
+		return slog.LevelInfo
+	case "WARN":
+		return slog.LevelWarn
+	case "ERROR":
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
 var (
 	DefaultConfig = Config{
 		RequestTTl:     3 * time.Second,
@@ -61,7 +76,7 @@ var (
 
 		DatabaseString: common.GetAbsolutePath("data.db"),
 
-		LogLevel: slog.LevelDebug,
+		LogLevel: "INFO",
 
 		BindIP: "0.0.0.0:8080",
 	}
