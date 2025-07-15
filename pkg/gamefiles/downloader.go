@@ -1,4 +1,4 @@
-package filedownloader
+package gamefiles
 
 import (
 	"context"
@@ -10,7 +10,6 @@ import (
 
 	"github.com/google/go-github/v62/github"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
-	gfu "github.com/volodymyrzuyev/goCsInspect/pkg/gamefiles"
 )
 
 const (
@@ -29,7 +28,7 @@ type fileDownloader struct {
 	l *slog.Logger
 }
 
-func NewFileDownloader() gfu.Downloader {
+func NewFileDownloader() Downloader {
 
 	return &fileDownloader{
 		client: github.NewClient(nil),
@@ -38,50 +37,50 @@ func NewFileDownloader() gfu.Downloader {
 	}
 }
 
-func (f *fileDownloader) GetFiles() (gfu.FilePaths, error) {
+func (f *fileDownloader) GetFiles() (FilePaths, error) {
 	gameItems, err := f.querryGithub(gameItemsRepoPath)
 	if err != nil {
 		f.l.Error("could not get new game items", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	language, err := f.querryGithub(englishRepoPath)
 	if err != nil {
 		f.l.Error("could not get new language file", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	if !f.compareShas(*language.SHA, *gameItems.SHA) {
-		return gfu.FilePaths{}, errors.ErrNoNewFiles
+		return FilePaths{}, errors.ErrNoNewFiles
 	}
 
 	languageData, err := downloadFileData(language)
 	if err != nil {
 		f.l.Error("could not get new language file", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	itemsData, err := downloadFileData(gameItems)
 	if err != nil {
 		f.l.Error("could not get new game items", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	languageFileName, err := createTemp(languageData)
 	if err != nil {
 		f.l.Error("could not save language file", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	itemsFileName, err := createTemp(itemsData)
 	if err != nil {
 		f.l.Error("could not save game items file", "error", err)
-		return gfu.FilePaths{}, err
+		return FilePaths{}, err
 	}
 
 	f.l.Info("new files downloaded")
 
-	return gfu.FilePaths{LanguageFile: languageFileName, GameItems: itemsFileName}, nil
+	return FilePaths{LanguageFile: languageFileName, GameItems: itemsFileName}, nil
 }
 
 func (f *fileDownloader) querryGithub(repoPath string) (*github.RepositoryContent, error) {

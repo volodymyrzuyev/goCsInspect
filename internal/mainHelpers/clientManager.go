@@ -4,7 +4,6 @@ import (
 	"log/slog"
 	"os"
 
-	filedownloader "github.com/volodymyrzuyev/goCsInspect/internal/fileDownloader"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
@@ -33,13 +32,13 @@ func InitClientManagerNoStorage(cfg config.Config) clientmanagement.Manager {
 func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.Manager {
 	mainLogger := slog.Default().WithGroup("Main")
 
-	fileDownloader := filedownloader.NewFileDownloader()
+	downloader := gamefiles.NewFileDownloader()
 	updater := gamefiles.NewUpdater(
 		cfg.GameFilesAutoUpdateInverval,
 		cfg.AutoUpdateGameFiles,
 		cfg.GameLanguageLocation,
 		cfg.GameItemsLocation,
-		fileDownloader,
+		downloader,
 	)
 	gameItems, err := updater.UpdateFiles()
 	if err != nil {
