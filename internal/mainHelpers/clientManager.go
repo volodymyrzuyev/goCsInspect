@@ -5,7 +5,7 @@ import (
 	"os"
 
 	filedownloader "github.com/volodymyrzuyev/goCsInspect/internal/fileDownloader"
-	sqlite "github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
+	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
