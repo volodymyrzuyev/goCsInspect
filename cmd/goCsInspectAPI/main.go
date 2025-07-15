@@ -6,13 +6,9 @@ import (
 	"log/slog"
 	"os"
 
-	filedownloader "github.com/volodymyrzuyev/goCsInspect/internal/fileDownloader"
-	storage "github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
+	mainhelpers "github.com/volodymyrzuyev/goCsInspect/internal/mainHelpers"
 	"github.com/volodymyrzuyev/goCsInspect/internal/web"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
-	"github.com/volodymyrzuyev/goCsInspect/pkg/gamefileupdater"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/logger"
 )
 
@@ -39,44 +35,7 @@ func main() {
 	slog.SetDefault(l)
 	lt := l.WithGroup("Main")
 
-	storage, err := storage.NewSQLiteStore(cfg.DatabaseString, l)
-	if err != nil {
-		lt.Error("unable to connect to database, stoping", "error", err)
-		os.Exit(1)
-	}
-
-	fileDownloader := filedownloader.NewFileDownloader(l)
-	fileManager := gamefileupdater.NewFileUpdater(
-		cfg.GameFilesAutoUpdateInverval,
-		cfg.AutoUpdateGameFiles,
-		cfg.GameLanguageLocation,
-		cfg.GameItemsLocation,
-		fileDownloader,
-		l,
-	)
-	gameItems, err := fileManager.UpdateFiles()
-	if err != nil {
-		lt.Error("unable to generate new game items, stoping", "error", err)
-		os.Exit(1)
-	}
-	det, err := detailer.NewDetailerWithCSItems(gameItems, l)
-	if err != nil {
-		lt.Error("unable to create new item detailer, stoping")
-		os.Exit(1)
-	}
-	fileManager.RegisterDetailer(det)
-
-	cm, err := clientmanagement.NewClientManager(
-		cfg.RequestTTl,
-		cfg.ClientCooldown,
-		det,
-		storage,
-		l,
-	)
-	if err != nil {
-		lt.Error("unable to create new client manager, stoping", "error", err)
-		os.Exit(1)
-	}
+	cm := mainhelpers.InitDefaultClientManager(cfg, lt, l)
 
 	for _, cli := range cfg.Accounts {
 		err := cm.AddClient(cli)
