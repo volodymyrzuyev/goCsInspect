@@ -21,6 +21,11 @@ type ClientManager interface {
 	AddClient(credentials creds.Credentials) error
 	InspectSkin(params inspect.Parameters) (*item.Item, error)
 	InspectSkinWithCtx(ctx context.Context, params inspect.Parameters) (*item.Item, error)
+	GetProto(params inspect.Parameters) (*protobuf.CEconItemPreviewDataBlock, error)
+	GetProtoWithCtx(
+		ctx context.Context,
+		params inspect.Parameters,
+	) (*protobuf.CEconItemPreviewDataBlock, error)
 }
 
 type clientManager struct {
@@ -85,15 +90,10 @@ func (c *clientManager) AddClient(credentials creds.Credentials) error {
 	return nil
 }
 
-func (c *clientManager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
-	ctx := context.TODO()
-	return c.InspectSkinWithCtx(ctx, params)
-}
-
-func (c *clientManager) InspectSkinWithCtx(
+func (c *clientManager) GetProtoWithCtx(
 	ctx context.Context,
 	params inspect.Parameters,
-) (*item.Item, error) {
+) (*protobuf.CEconItemPreviewDataBlock, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, c.requestTTl)
 	defer cancel()
@@ -101,7 +101,7 @@ func (c *clientManager) InspectSkinWithCtx(
 	proto, err := c.storage.GetItem(ctx, params)
 	if err == nil {
 		c.l.Debug("item previously stored", "params", fmt.Sprintf("%+v", params))
-		return c.detailer.DetailProto(proto)
+		return proto, nil
 	}
 
 	if c.clientQue.len() == 0 {
@@ -123,12 +123,39 @@ func (c *clientManager) InspectSkinWithCtx(
 			return nil, err
 		}
 		go c.storeToStorage(context.Background(), params, resp.responseProto)
-		return c.detailer.DetailProto(resp.responseProto)
+		return resp.responseProto, nil
 
 	case <-ctx.Done():
 		slog.Error("client timeout requesting item preview block", "item_id", params.A)
 		return nil, errors.ErrClientTimeout
 	}
+}
+
+func (c *clientManager) GetProto(
+	params inspect.Parameters,
+) (*protobuf.CEconItemPreviewDataBlock, error) {
+
+	return c.GetProtoWithCtx(context.TODO(), params)
+}
+
+
+func (c *clientManager) InspectSkinWithCtx(
+	ctx context.Context,
+	params inspect.Parameters,
+) (*item.Item, error) {
+
+	proto, err := c.GetProtoWithCtx(ctx, params)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return c.detailer.DetailProto(proto)
+}
+
+func (c *clientManager) InspectSkin(params inspect.Parameters) (*item.Item, error) {
+	ctx := context.TODO()
+	return c.InspectSkinWithCtx(ctx, params)
 }
 
 func (c *clientManager) storeToStorage(
