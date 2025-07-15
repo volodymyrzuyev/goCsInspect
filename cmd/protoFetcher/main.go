@@ -79,10 +79,15 @@ func main() {
 			lt.Error("unable to find/create response proto directory, stopping", "error", err)
 			os.Exit(1)
 		}
-		for name, n := range fs {
-			lt.Debug("skipping existing test", "name", name)
-			delete(dataFetchingResources, strings.ReplaceAll(n.Name(), ".yaml", ""))
+		for _, n := range fs {
+			testName := strings.ReplaceAll(n.Name(), ".yaml", "")
+			lt.Debug("skipping existing test", "name", testName)
+			delete(dataFetchingResources, testName)
 		}
+	}
+	if len(dataFetchingResources) == 0 {
+		lt.Info("no data to fetch, stopping")
+		os.Exit(0)
 	}
 
 	estimatedTotalTime := time.Duration(len(dataFetchingResources)) * cfg.ClientCooldown
