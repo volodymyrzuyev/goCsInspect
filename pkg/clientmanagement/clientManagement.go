@@ -41,7 +41,7 @@ type manager struct {
 	jobQue    *jobQue
 }
 
-func NewClientManager(
+func New(
 	requestTTL time.Duration,
 	clientCooldown time.Duration,
 	detailer detailer.Detailer,

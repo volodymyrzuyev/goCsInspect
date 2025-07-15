@@ -53,7 +53,7 @@ func InitClientManager(str storage.Storage, cfg config.Config) clientmanagement.
 	}
 	fileManager.RegisterDetailer(det)
 
-	cm, err := clientmanagement.NewClientManager(
+	cm, err := clientmanagement.New(
 		cfg.RequestTTl,
 		cfg.ClientCooldown,
 		det,
