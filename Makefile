@@ -10,7 +10,7 @@ fetch_data: build_fetcher
 	bin/$(dataFetcherDir)/$(buildName) --skip
 
 gen_sql:
-	cd internal/storage/sqlite/sql && sqlc generate
+	cd pkg/storage/sqlite/sql && sqlc generate
 
 build_all: build_fetcher build_api
 

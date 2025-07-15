@@ -6,8 +6,8 @@ import (
 
 	"github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	"github.com/stretchr/testify/assert"
-	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite/sql/sqlc"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/storage/sqlite/sql/sqlc"
 	"github.com/volodymyrzuyev/goCsInspect/tests/testdata"
 )
 

@@ -5,12 +5,12 @@ import (
 	"os"
 
 	filedownloader "github.com/volodymyrzuyev/goCsInspect/internal/fileDownloader"
-	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/clientmanagement"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/config"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/detailer"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/gamefiles"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/storage/sqlite"
 )
 
 func InitDefaultClientManager(cfg config.Config) clientmanagement.Manager {

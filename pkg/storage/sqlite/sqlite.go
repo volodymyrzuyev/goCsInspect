@@ -9,11 +9,11 @@ import (
 
 	proto "github.com/Philipp15b/go-steam/v3/csgo/protocol/protobuf"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/volodymyrzuyev/goCsInspect/internal/storage/sqlite/sql/sqlc"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/common/errors"
 	t "github.com/volodymyrzuyev/goCsInspect/pkg/inspect"
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
+	"github.com/volodymyrzuyev/goCsInspect/pkg/storage/sqlite/sql/sqlc"
 )
 
 type Sqlite struct {
