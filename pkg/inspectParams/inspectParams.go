@@ -18,7 +18,7 @@ type InspectParameters struct {
 func ParseInspectLink(inspectLink string) (InspectParameters, error) {
 	// hate regex will probably break
 	re := regexp.MustCompile(
-		`steam://rungame/730/.\d+/.*csgo_econ_action_preview.([SM])(\d+)A(\d+)D(\d+)$`,
+		`steam://rungame/730/.\d+/.*csgo_econ_action_preview.+([SM])(\d+)A(\d+)D(\d+)$`,
 	)
 
 	matches := re.FindStringSubmatch(inspectLink)
