@@ -37,7 +37,7 @@ databasestring: database/data.db
 
 # Log level
 # Supported: [DEBUG, INFO, WARN, ERROR]
-leveldebug: INFO
+loglevel: DEBUG
 
 # Ip and port the REST api will bind to
 bindip: 0.0.0.0:8080
