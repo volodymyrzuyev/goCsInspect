@@ -9,7 +9,7 @@ config.yaml
 
 # test data
 tests/responseProtos/
-tests/inspectParams/
+tests/inspect/
 
 # code gen
 internal/storage/*/sql/sqlc

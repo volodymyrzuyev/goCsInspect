@@ -9,10 +9,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func GetInspectParams() map[string]inspect.Parameters {
-	protoPath := filepath.Join(GetTestDirectory(), "inspectParams")
+var InspectParamsLocation = filepath.Join(GetTestDirectory(), "inspect")
 
-	fs, err := os.ReadDir(protoPath)
+func GetInspectParams() map[string]inspect.Parameters {
+	fs, err := os.ReadDir(InspectParamsLocation)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func GetInspectParams() map[string]inspect.Parameters {
 
 		name := strings.ReplaceAll(f.Name(), ".yaml", "")
 
-		toParse, err := os.ReadFile(filepath.Join(protoPath, f.Name()))
+		toParse, err := os.ReadFile(filepath.Join(InspectParamsLocation, f.Name()))
 		if err != nil {
 			panic(err)
 		}

@@ -34,7 +34,7 @@ func getModDBItem(protos []*protobuf.CEconItemPreviewDataBlock_Sticker) []sqlc.M
 }
 
 func TestFetch(t *testing.T) {
-	protos := testdata.GetTestProtoData()
+	protos := testdata.GetResponseProtos()
 	params := testdata.GetInspectParams()
 
 	s := Sqlite{l: slog.New(slog.DiscardHandler)}

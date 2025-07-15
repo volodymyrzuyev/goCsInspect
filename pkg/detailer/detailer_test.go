@@ -70,7 +70,7 @@ func TestDetailSkin(t *testing.T) {
 		t.Fatalf("could not create detailer %v", err)
 	}
 
-	tests := testdata.GetTestProtoData()
+	tests := testdata.GetResponseProtos()
 	expected := getExpected()
 
 	for name, input := range tests {

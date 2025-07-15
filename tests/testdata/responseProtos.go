@@ -9,10 +9,10 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func GetTestProtoData() map[string]*protobuf.CEconItemPreviewDataBlock {
-	protoPath := filepath.Join(GetTestDirectory(), "responseProtos")
+var ResponseProtosLocation = filepath.Join(GetTestDirectory(), "responseProtos")
 
-	fs, err := os.ReadDir(protoPath)
+func GetResponseProtos() map[string]*protobuf.CEconItemPreviewDataBlock {
+	fs, err := os.ReadDir(ResponseProtosLocation)
 	if err != nil {
 		panic(err)
 	}
@@ -26,7 +26,7 @@ func GetTestProtoData() map[string]*protobuf.CEconItemPreviewDataBlock {
 
 		name := strings.ReplaceAll(f.Name(), ".yaml", "")
 
-		toParse, err := os.ReadFile(filepath.Join(protoPath, f.Name()))
+		toParse, err := os.ReadFile(filepath.Join(ResponseProtosLocation, f.Name()))
 		if err != nil {
 			panic(err)
 		}
