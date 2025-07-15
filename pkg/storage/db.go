@@ -8,11 +8,13 @@ import (
 )
 
 type Storage interface {
+	// stores an item protobuf
 	StoreItem(
 		ctx context.Context,
 		inspectParams inspect.Params,
 		proto *protobuf.CEconItemPreviewDataBlock,
 	) error
+	// fetches an item protobuf
 	GetItem(
 		ctx context.Context,
 		inspectParams inspect.Params,

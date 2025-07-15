@@ -16,15 +16,29 @@ import (
 	gameC "github.com/volodymyrzuyev/goCsInspect/pkg/gamecordinator"
 )
 
+// Client interface is used to interface with steam game gamecoordinator to
+// fetch data about items. Responsible for logging in into steam and handling
+// all events that are sent by the game gamecoordinator as well as other steam
+// services
 type Client interface {
+	// Used to check if client is healthy
+	// True means the client is safe to use
 	IsLoggedIn() bool
+	// Used to check if client is ready to handle a new request
+	// True means a new request can be sent
 	IsAvailable() bool
+	// Returns the username of client
 	Username() string
 
+	// Stops the client
 	LogOff()
+	// Logins into the steam network
+	// expects the implementation handles creds on it's own
 	LogIn() error
+	// Stops, after which re logins into steam
 	Reconnect() error
 
+	// Fetches an item from steam
 	InspectItem(
 		ctx context.Context,
 		params *protobuf.CMsgGCCStrike15V2_Client2GCEconPreviewDataBlockRequest,

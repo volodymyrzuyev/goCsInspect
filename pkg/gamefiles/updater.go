@@ -12,11 +12,15 @@ import (
 )
 
 type Downloader interface {
+	// Creates temp files with new data, returning their full paths
 	GetFiles() (FilePaths, error)
 }
 
 type Updater interface {
+	// Updates game files, if autoUpdate is enabled, it will replace files that
+	// are present on the system
 	UpdateFiles() (*csgo.Csgo, error)
+	// Register a detailer who's gamedata will be updated on updateInterval
 	RegisterDetailer(det.Detailer)
 }
 

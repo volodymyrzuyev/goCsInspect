@@ -5,6 +5,9 @@ import (
 	"path/filepath"
 )
 
+// Returns absolute path of a file/directory. If the relativePath is an absolute
+// path, returns the path passed in. 
+// Panics if unable to get PWD
 func GetAbsolutePath(relativePath string) string {
 	if filepath.IsAbs(relativePath) {
 		return relativePath
@@ -17,6 +20,8 @@ func GetAbsolutePath(relativePath string) string {
 	return filepath.Join(projectRoot, relativePath)
 }
 
+// Creates a file with any directory's the path outlines
+// Returns any error that is encountered
 func CreateFile(path string) error {
 	fullPath := GetAbsolutePath(path)
 
@@ -33,6 +38,7 @@ func CreateFile(path string) error {
 	return file.Close()
 }
 
+// Checks if a path exists, if not, creates it
 func VertifyAndCreateFile(path string) error {
 	_, err := os.Stat(GetAbsolutePath(path))
 	if os.IsNotExist(err) {

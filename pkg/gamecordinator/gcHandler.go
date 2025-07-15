@@ -13,7 +13,9 @@ import (
 )
 
 type Handler interface {
+	// Used to handle all packets from the steam game game coordinator
 	HandleGCPacket(packet *gamecoordinator.GCPacket)
+	// Returns protobuf for item with a specified itemid, timeout can be set using ctx
 	GetResponse(
 		ctx context.Context,
 		itemId uint64,

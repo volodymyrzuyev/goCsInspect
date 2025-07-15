@@ -11,19 +11,30 @@ import (
 )
 
 type Config struct {
-	RequestTTl     time.Duration
+	// Amount of time for a request to live, if exceeded, request get's aborted
+	RequestTTl time.Duration
+	// Time between requests can be sent from a single client
 	ClientCooldown time.Duration
-	Accounts       []creds.Account
+	// Client credentials
+	Accounts []creds.Account
 
-	GameItemsLocation           string
-	GameLanguageLocation        string
-	AutoUpdateGameFiles         bool
+	// Location of items_game.txt
+	GameItemsLocation string
+	// Location of language_(name).txt
+	GameLanguageLocation string
+	// Flag to enable/disable auto file updates
+	AutoUpdateGameFiles bool
+	// Interval of fetching new updates
 	GameFilesAutoUpdateInverval time.Duration
 
+	// Connection path for a database
 	DatabaseString string
 
+	// Log lever
+	// [DEBUG, WARN, INFO, ERROR]
 	LogLevel string
 
+	// IP to which HTTP api will bind
 	BindIP string
 }
 
@@ -84,6 +95,7 @@ var (
 	DefaultConfigLocation = common.GetAbsolutePath("config.yaml")
 )
 
+// Parses config form a YAML file
 func ParseConfig(relativePath string) (Config, error) {
 	out, err := os.ReadFile(relativePath)
 	if err != nil {

@@ -29,7 +29,6 @@ type fileDownloader struct {
 }
 
 func NewFileDownloader() Downloader {
-
 	return &fileDownloader{
 		client: github.NewClient(nil),
 

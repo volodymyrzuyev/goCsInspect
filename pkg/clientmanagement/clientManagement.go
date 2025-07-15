@@ -15,11 +15,18 @@ import (
 	"github.com/volodymyrzuyev/goCsInspect/pkg/storage"
 )
 
+// Manager is used to que and resolve request using multiple clients, as well as
+// detailing protobuf responses from steam
 type Manager interface {
+	// Adds a client, expects that the client is no logged in
 	AddClient(client client.Client) error
+	// Fetches skin details
 	InspectSkin(params inspect.Params) (*item.Item, error)
+	// Fetches skin details with context
 	InspectSkinWithCtx(ctx context.Context, params inspect.Params) (*item.Item, error)
+	// Fetches an item protobuf
 	GetProto(params inspect.Params) (*protobuf.CEconItemPreviewDataBlock, error)
+	// Fetches an item protobuf with context
 	GetProtoWithCtx(
 		ctx context.Context,
 		params inspect.Params,

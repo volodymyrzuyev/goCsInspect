@@ -15,7 +15,9 @@ import (
 )
 
 type Detailer interface {
+	// Populates extra details for items
 	DetailProto(proto *protobuf.CEconItemPreviewDataBlock) (*item.Item, error)
+	// Updates data used to detail a protobuf
 	UpdateItems(newItems *csgo.Csgo)
 }
 
