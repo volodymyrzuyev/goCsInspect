@@ -17,7 +17,7 @@ build_all: build_fetcher build_api
 build_api: gen_sql
 	go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=ignore" -o bin/$(goCsInsRestDir)/$(buildName) cmd/$(goCsInsRestDir)/main.go
 
-run_api:
+run_api: build_api
 	bin/$(goCsInsRestDir)/$(buildName)
 
 test: gen_sql fetch_data
