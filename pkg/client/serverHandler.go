@@ -2,56 +2,105 @@ package client
 
 import (
 	"encoding/json"
-	"math/rand"
+	"io"
 	"net"
-	"os"
+	"net/http"
+	"time"
 
 	"github.com/Philipp15b/go-steam/v3"
 	"github.com/Philipp15b/go-steam/v3/netutil"
 )
 
+var serverManager = newServerList()
+
 type serverList struct {
-	client   *steam.Client
-	listPath string
+	serverList []*net.TCPAddr
+	fastest    *net.TCPAddr
 }
 
-func newServerList(client *steam.Client, listPath string) *serverList {
-	return &serverList{
-		client:   client,
-		listPath: listPath,
+func newServerList() *serverList {
+	s := &serverList{}
+	s.init()
+	return s
+}
+
+func (s *serverList) Connect(client *steam.Client) error {
+	if s.fastest == nil {
+		_, err := client.Connect()
+		return err
 	}
+
+	return client.ConnectTo(&netutil.PortAddr{IP: s.fastest.IP, Port: uint16(s.fastest.Port)})
 }
 
-func (s *serverList) HandleEvent(event any) {
-	switch e := event.(type) {
-	case *steam.ClientCMListEvent:
-		d, err := json.Marshal(e.Addresses)
-		if err != nil {
-			panic(err)
-		}
-		err = os.WriteFile(s.listPath, d, 0666)
-		if err != nil {
-			panic(err)
-		}
-	}
+func (s *serverList) init() {
+	s.serverList = parserServers(fetchCMList())
+	s.fastest = getFastestCM(s.serverList)
 }
 
-func (s *serverList) Connect() (bool, error) {
-	return s.ConnectBind(nil)
+type cmListResponse struct {
+	Serverlist struct {
+		EndpointList []struct {
+			EndpointIP string `json:"endpoint"`
+		} `json:"serverlist"`
+	} `json:"response"`
 }
 
-func (s *serverList) ConnectBind(laddr *net.TCPAddr) (bool, error) {
-	d, err := os.ReadFile(s.listPath)
+const cmListFetchURL string = "http://api.steampowered.com/ISteamDirectory/GetCMListForConnect/v1/?cmtype=netfilter"
+
+func fetchCMList() cmListResponse {
+	var result cmListResponse
+	apiResponse, err := http.Get(cmListFetchURL)
 	if err != nil {
-		_, err := s.client.Connect()
-		return err == nil, err
+		return cmListResponse{}
 	}
-	var addrs []*netutil.PortAddr
-	err = json.Unmarshal(d, &addrs)
+
+	apiResponseBody, err := io.ReadAll(apiResponse.Body)
 	if err != nil {
-		return false, err
+		return cmListResponse{}
 	}
-	raddr := addrs[rand.Intn(len(addrs))]
-	err = s.client.ConnectToBind(raddr, laddr)
-	return err == nil, err
+
+	if err = json.Unmarshal(apiResponseBody, &result); err != nil {
+		return cmListResponse{}
+	}
+
+	return result
+}
+
+func parserServers(response cmListResponse) []*net.TCPAddr {
+	addrList := make([]*net.TCPAddr, 0, len(response.Serverlist.EndpointList))
+
+	for _, a := range response.Serverlist.EndpointList {
+		if tcpAddr, err := net.ResolveTCPAddr("tcp", a.EndpointIP); err == nil {
+			addrList = append(addrList, tcpAddr)
+		}
+	}
+
+	return addrList
+}
+
+func getFastestCM(addrList []*net.TCPAddr) *net.TCPAddr {
+	var smallestLatencyAddr *net.TCPAddr
+	var smallestLatency int64 = 1000 // random
+	var largestLatency int64 = 0
+	for _, a := range addrList {
+		curTime := time.Now()
+		conn, err := net.DialTCP("tcp", nil, a)
+		if err != nil {
+			if conn != nil {
+				conn.Close()
+			}
+			continue
+		}
+		latency := time.Since(curTime).Milliseconds()
+		conn.Close()
+		if latency < smallestLatency {
+			smallestLatency = latency
+			smallestLatencyAddr = a
+		}
+		if latency > largestLatency {
+			largestLatency = latency
+		}
+	}
+	return smallestLatencyAddr
 }

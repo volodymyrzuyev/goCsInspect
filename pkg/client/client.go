@@ -107,33 +107,40 @@ func runClientLoop(
 	loginCh chan<- error,
 	l *slog.Logger,
 ) {
-	auth := newAuth(client, &creds, loginCh)
-	serverList := newServerList(client, "servers/list.json")
 
-	serverList.Connect()
+	err := serverManager.Connect(client)
+	if err != nil {
+		loginCh <- err
+		return
+	}
 
 	for {
 		select {
 		case <-exitCh:
 			l.Info("stopping client loop")
 			return
+
 		case event, ok := <-client.Events():
 			if !ok {
 				l.Error("leaving client loop")
 				return
 			}
 
-			auth.HandleEvent(event)
-			serverList.HandleEvent(event)
-
 			switch e := event.(type) {
 			case error:
 				l.Debug("client event error", "error", e.Error())
+			case *steam.ConnectedEvent:
+				client.Auth.LogOn(&creds)
 
 			case *steam.LoggedOnEvent:
+				loginCh <- nil
 				client.Social.SetPersonaState(steamlang.EPersonaState_Online)
 				client.GC.SetGamesPlayed(csAppID)
+
+			case *steam.LogOnFailedEvent:
+				loginCh <- fmt.Errorf("%s", e.Result.String())
 			}
+
 		}
 	}
 }
