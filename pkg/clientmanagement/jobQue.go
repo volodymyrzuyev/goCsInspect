@@ -25,11 +25,11 @@ type jobQue struct {
 	mu  sync.Mutex
 	que *queue.Queue
 
-	clientQue *clientQue
+	clientQue *clientRing
 	l         *slog.Logger
 }
 
-func newJobQue(c *clientQue) *jobQue {
+func newJobQue(c *clientRing) *jobQue {
 	q := &jobQue{
 		que:       queue.New(),
 		clientQue: c,

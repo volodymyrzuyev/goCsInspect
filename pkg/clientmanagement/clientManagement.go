@@ -41,7 +41,7 @@ type manager struct {
 	storage  storage.Storage
 	l        *slog.Logger
 
-	clientQue *clientQue
+	clientQue *clientRing
 	jobQue    *jobQue
 }
 
